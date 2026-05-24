@@ -422,6 +422,45 @@ tr:hover td{background:rgba(29,111,245,.04)}
 const SUPA_URL = 'https://qznxffulpdkemswahftg.supabase.co';
 const SUPA_KEY = 'sb_publishable_cdKeJu5Q9aQKwigeNldzwQ_pvcJorCp';
 
+var USERS = [{name:'Admin Master',email:'admin@lifelineone.com',pass:'admin123',role:'ADMIN',status:'active'}];
+var SESSION = null;
+var chosenRole = '';
+
+function showScreen(id){
+  ['screen-login','screen-register','screen-pending'].forEach(function(s){document.getElementById(s).style.display='none';});
+  document.getElementById(id).style.display='flex';
+}
+
+function doLogin(){
+  var email=document.getElementById('li-email').value.trim().toLowerCase();
+  var pass=document.getElementById('li-pass').value;
+  var err=document.getElementById('li-err');
+  err.style.display='none';
+  var u=USERS.filter(function(x){return x.email.toLowerCase()===email&&x.pass===pass;})[0];
+  if(!u){err.style.display='block';return;}
+  if(u.status==='pending'){showScreen('screen-pending');return;}
+  if(u.status==='denied'){err.textContent='Acesso negado.';err.style.display='block';return;}
+  SESSION=u;loadDashboard(u);
+}
+
+function doRegister(){
+  var name=document.getElementById('rg-name').value.trim();
+  var email=document.getElementById('rg-email').value.trim().toLowerCase();
+  var pass=document.getElementById('rg-pass').value;
+  var err=document.getElementById('rg-err');
+  err.style.display='none';
+  if(!name||!email||!pass||!chosenRole){err.textContent='Preencha todos os campos.';err.style.display='block';return;}
+  if(pass.length<6){err.textContent='Senha muito curta.';err.style.display='block';return;}
+  if(USERS.filter(function(x){return x.email===email;}).length){err.textContent='E-mail já cadastrado.';err.style.display='block';return;}
+  USERS.push({name:name,email:email,pass:pass,role:chosenRole,status:'pending'});
+  showScreen('screen-pending');
+}
+
+function logout(){SESSION=null;document.getElementById('app').style.display='none';showScreen('screen-login');}
+function pickRole(el,r){document.querySelectorAll('.role-card').forEach(function(c){c.classList.remove('sel');});el.classList.add('sel');chosenRole=r;}
+
+showScreen('screen-login');
+
 async function supaFetch(path, method='GET', body=null) {
   const opts = {
     method,
