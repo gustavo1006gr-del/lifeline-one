@@ -684,7 +684,7 @@ function renderRanking(vendas) {
     ranking[v.closer].valor += Number(v.valor||0);
     ranking[v.closer].comissao += Number(v.valor||0) * Number(v.comissao_pct||0) / 100;
   });
-  var lista = Object.keys(ranking).map(function(k){ return {nome:k, ...ranking[k]}; });
+  var lista = Object.keys(ranking).map(function(k){ return {nome:k, vendas:ranking[k].vendas, valor:ranking[k].valor, comissao:ranking[k].comissao}; });
   lista.sort(function(a,b){ return b.valor - a.valor; });
   var medalhas = ['🥇','🥈','🥉'];
   var maxValor = lista[0] ? lista[0].valor : 1;
