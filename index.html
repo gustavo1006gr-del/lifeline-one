@@ -463,6 +463,34 @@ function showScreen(id){
   document.getElementById(id).style.display='flex';
 }
 
+function abrirModalVenda() {
+  document.getElementById('venda-closer').value = '';
+  document.getElementById('venda-cliente').value = '';
+  document.getElementById('venda-valor').value = '';
+  document.getElementById('venda-comissao').value = '20';
+  document.getElementById('venda-data').value = new Date().toISOString().split('T')[0];
+  document.getElementById('venda-status').value = 'pendente';
+  document.getElementById('venda-err').style.display = 'none';
+  document.getElementById('modal-venda').style.display = 'flex';
+}
+function fecharModalVenda() { document.getElementById('modal-venda').style.display = 'none'; }
+
+function abrirModalColaborador() {
+  document.getElementById('colab-id').value = '';
+  document.getElementById('colab-nome').value = '';
+  document.getElementById('colab-cargo').value = '';
+  document.getElementById('colab-salario').value = '';
+  document.getElementById('colab-data').value = '';
+  document.getElementById('colab-status').value = 'ativo';
+  document.getElementById('colab-tel').value = '';
+  document.getElementById('colab-email').value = '';
+  document.getElementById('colab-obs').value = '';
+  document.getElementById('colab-err').style.display = 'none';
+  document.getElementById('modal-colab-title').textContent = 'Novo Colaborador';
+  document.getElementById('modal-colab').style.display = 'flex';
+}
+function fecharModalColaborador() { document.getElementById('modal-colab').style.display = 'none'; }
+
 function doLogin(){
   var email=document.getElementById('li-email').value.trim().toLowerCase();
   var pass=document.getElementById('li-pass').value;
