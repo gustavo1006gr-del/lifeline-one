@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Lifeline One</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050d1a;--sidebar:#08132b;--card:#0d1e3a;--card2:#0a1730;--border:#1a3060;--blue:#1d6ff5;--neon:#38bdf8;--neon2:#60a5fa;--text:#e2eaff;--muted:#6b8aad}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px}
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center}
+.auth-box{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:40px 36px;width:100%;max-width:420px}
+.auth-heading{font-size:24px;font-weight:800;color:#fff;margin-bottom:6px}
+.auth-sub{font-size:13px;color:var(--muted);margin-bottom:28px;line-height:1.6}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.field input,.field select{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus{border-color:var(--blue)}
+.auth-btn{width:100%;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px}
+.auth-btn:hover{background:#1a5fd4}
+.auth-err{color:#f87171;font-size:12px;text-align:center;margin-top:10px}
+.auth-switch{text-align:center;margin-top:18px;font-size:13px;color:var(--muted)}
+.auth-switch span{color:var(--neon);cursor:pointer}
+.auth-switch span:hover{text-decoration:underline}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.role-card{background:var(--card2);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .15s}
+.role-card:hover{border-color:rgba(56,189,248,.4)}
+.role-card.sel{border-color:var(--blue);background:rgba(29,111,245,.12)}
+.role-card i{font-size:17px;color:var(--muted)}
+.role-card.sel i{color:var(--neon)}
+.role-card span{font-size:12px;font-weight:500;color:var(--muted)}
+.role-card.sel span{color:var(--text)}
+.pending-box{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.18);border-radius:12px;padding:24px;text-align:center}
+.pending-box i{font-size:38px;color:#fbbf24;display:block;margin-bottom:12px}
+.pending-box h3{font-size:16px;font-weight:700;color:#fff;margin-bottom:8px}
+.pending-box p{font-size:13px;color:var(--muted);line-height:1.6}
+#app{display:none;height:100vh;overflow:hidden}
+#app.show{display:flex}
+#sidebar{width:220px;min-width:220px;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.logo{padding:20px 18px 16px;border-bottom:1px solid var(--border)}
+.logo .name{font-size:18px;font-weight:800;color:#fff}
+nav{flex:1;padding:10px 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;color:var(--muted);border-left:2px solid transparent;transition:all .15s;font-size:13px}
+.nav-item:hover{color:var(--text);background:rgba(29,111,245,.08)}
+.nav-item.active{color:var(--neon);border-left:2px solid var(--neon);background:rgba(56,189,248,.07);font-weight:500}
+.nav-item i{font-size:17px}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.sf-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1d6ff5,#38bdf8);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#topbar{height:52px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:var(--sidebar)}
+.page-title{font-size:15px;font-weight:600;color:#fff}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.icon-btn{width:30px;height:30px;border-radius:8px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:15px;position:relative}
+.icon-btn:hover{color:var(--neon);border-color:var(--neon)}
+.notif-dot{width:7px;height:7px;background:#f87171;border-radius:50%;position:absolute;top:5px;right:5px;display:none}
+.topbar-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#1d6ff5,#38bdf8);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+#content{flex:1;overflow-y:auto;padding:22px}
+.page{display:none}.page.active{display:block}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;position:relative;overflow:hidden;transition:border-color .2s}
+.kpi:hover{border-color:rgba(56,189,248,.35)}
+.kpi::before{content:'';position:absolute;top:0;right:0;width:50px;height:50px;background:radial-gradient(circle,rgba(29,111,245,.1),transparent 70%)}
+.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
+.kpi-value{font-size:21px;font-weight:700;color:#fff}
+.kpi-value.blue{color:var(--neon)}.kpi-value.green{color:#34d399}.kpi-value.red{color:#f87171}.kpi-value.amber{color:#fbbf24}
+.kpi-icon{position:absolute;top:12px;right:12px;font-size:18px;color:var(--blue);opacity:.45}
+.kpi-delta{font-size:11px;margin-top:3px;display:flex;align-items:center;gap:3px}
+.kpi-delta.up{color:#34d399}.kpi-delta.down{color:#f87171}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-title{font-size:14px;font-weight:600;color:var(--text)}
+.btn{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:#1a5fd4}
+.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn.ghost:hover{border-color:var(--neon);color:var(--neon)}
+.chart-row{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:22px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
+.chart-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 12px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid var(--border);font-weight:500}
+td{padding:10px 12px;border-bottom:1px solid rgba(26,48,96,.5);color:var(--text);vertical-align:middle}
+tr:hover td{background:rgba(29,111,245,.04)}
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:18px}
+.badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600}
+.badge.green{background:rgba(52,211,153,.12);color:#34d399}
+.badge.red{background:rgba(248,113,113,.12);color:#f87171}
+.badge.blue{background:rgba(56,189,248,.12);color:var(--neon)}
+.badge.amber{background:rgba(251,191,36,.12);color:#fbbf24}
+.badge.purple{background:rgba(167,139,250,.12);color:#a78bfa}
+.badge.gray{background:rgba(107,138,173,.12);color:var(--muted)}
+.alert-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.alert-item{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:11px 14px;display:flex;align-items:center;gap:10px}
+.alert-item.warn{border-left-color:#fbbf24}.alert-item.danger{border-left-color:#f87171}
+.alert-item i{font-size:17px}.alert-item.warn i{color:#fbbf24}.alert-item.danger i{color:#f87171}.alert-item.info i{color:var(--neon)}
+.alert-text{flex:1;font-size:13px}.alert-text strong{display:block;margin-bottom:1px}
+.alert-time{font-size:11px;color:var(--muted)}
+.health-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px;margin-bottom:18px}
+.health-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px;text-align:center}
+.health-score{font-size:26px;font-weight:800;line-height:1}
+.health-label{font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.8px}
+.rank-list{display:flex;flex-direction:column;gap:7px}
+.rank-item{display:flex;align-items:center;gap:10px;background:var(--card2);border-radius:8px;padding:10px 12px}
+.rank-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.rank-info{flex:1}.rank-name{font-size:13px;font-weight:500}.rank-val{font-size:11px;color:var(--muted)}
+.progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:3px}
+.progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--blue),var(--neon))}
+.rank-badge{font-size:13px;font-weight:700;color:#34d399}
+.commission-total{background:linear-gradient(135deg,rgba(29,111,245,.18),rgba(56,189,248,.08));border:1px solid rgba(56,189,248,.22);border-radius:12px;padding:16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.commission-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.commission-value{font-size:26px;font-weight:800;color:#fff}
+.commission-sub{font-size:12px;color:var(--neon);margin-top:2px}
+.closer-panel{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.search-bar{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 12px;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.search-bar i{color:var(--muted);font-size:15px}
+.search-bar input{background:transparent;border:none;outline:none;color:var(--text);font-size:13px;flex:1}
+.collab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-bottom:18px}
+.collab-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;cursor:pointer;transition:border-color .2s}
+.collab-card:hover{border-color:rgba(56,189,248,.35)}
+.collab-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.collab-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
+.collab-name{font-size:14px;font-weight:600}.collab-role{font-size:12px;color:var(--muted)}
+.collab-row{display:flex;justify-content:space-between;margin-top:6px;font-size:12px;color:var(--muted)}
+.collab-row span:last-child{color:var(--text);font-weight:500}
+.client-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-bottom:18px}
+.client-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;cursor:pointer;transition:border-color .2s}
+.client-card:hover{border-color:rgba(56,189,248,.35)}
+.client-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.client-logo{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff}
+.client-name{font-size:14px;font-weight:600}.client-niche{font-size:12px;color:var(--muted)}
+.service-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.service-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(29,111,245,.15);color:var(--neon2)}
+.client-footer{display:flex;justify-content:space-between;margin-top:8px;font-size:12px}
+.patrimony-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-bottom:18px}
+.pat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px}
+.pat-icon{width:38px;height:38px;border-radius:10px;background:rgba(29,111,245,.14);display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.pat-icon i{font-size:19px;color:var(--neon)}
+.pat-name{font-size:13px;font-weight:600;margin-bottom:3px}
+.pat-val{font-size:17px;font-weight:700;color:#fff;margin-bottom:6px}
+.pat-row{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:3px}
+.cal-header{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:6px}
+.cal-day-name{font-size:10px;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:.7px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal-cell{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:7px;font-size:12px;cursor:pointer;border:1px solid transparent;position:relative}
+.cal-cell:hover{background:var(--card);border-color:var(--border)}
+.cal-cell.has-sale{background:rgba(29,111,245,.16);border-color:rgba(29,111,245,.28);color:var(--neon)}
+.cal-cell.today{border-color:var(--neon);color:var(--neon)}
+.cal-cell .dot{width:4px;height:4px;border-radius:50%;background:var(--neon);position:absolute;bottom:3px}
+.report-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-bottom:22px}
+.report-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all .2s}
+.report-card:hover{border-color:var(--neon)}
+.report-card i{font-size:26px;color:var(--blue);margin-bottom:8px}
+.report-card-title{font-size:13px;font-weight:600;margin-bottom:3px}
+.report-card-desc{font-size:11px;color:var(--muted)}
+.user-req-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.user-req-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.user-req-info{flex:1}
+.user-req-name{font-size:13px;font-weight:600}
+.user-req-detail{font-size:12px;color:var(--muted);margin-top:2px}
+.user-req-actions{display:flex;gap:6px}
+.approve-btn{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.25);color:#34d399;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer}
+.deny-btn{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);color:#f87171;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer}
+.fg label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
+.fg input,.fg select{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div id="screen-login" class="auth-wrap">
+  <div class="auth-box">
+    <div class="auth-heading">Bem-vindo(a) à Lifeline One</div>
+    <div class="auth-sub">Painel operacional interno. Entre com suas credenciais para acessar.</div>
+    <div class="field"><label>E-mail</label><input type="text" id="li-email" placeholder="admin@lifelineone.com"/></div>
+    <div class="field"><label>Senha</label><input type="password" id="li-pass" placeholder="••••••••"/></div>
+    <div class="auth-err" id="li-err" style="display:none">E-mail ou senha incorretos.</div>
+    <button class="auth-btn" id="li-btn">Entrar</button>
+    <div class="auth-switch">Não tem conta? <span id="go-reg">Criar conta</span></div>
+  </div>
+</div>
+
+<div id="screen-register" class="auth-wrap" style="display:none">
+  <div class="auth-box">
+    <div class="auth-heading">Criar conta</div>
+    <div class="auth-sub">Seu acesso será liberado pelo administrador após análise.</div>
+    <div class="field"><label>Nome completo</label><input type="text" id="rg-name" placeholder="Seu nome"/></div>
+    <div class="field"><label>E-mail</label><input type="text" id="rg-email" placeholder="seu@email.com"/></div>
+    <div class="field"><label>Senha</label><input type="password" id="rg-pass" placeholder="Mínimo 6 caracteres"/></div>
+    <div class="field"><label>Sua função</label></div>
+    <div class="role-grid">
+      <div class="role-card" onclick="pickRole(this,'CLOSER')"><i class="ti ti-trophy"></i><span>Closer</span></div>
+      <div class="role-card" onclick="pickRole(this,'SDR')"><i class="ti ti-phone"></i><span>SDR</span></div>
+      <div class="role-card" onclick="pickRole(this,'DEV')"><i class="ti ti-code"></i><span>Desenvolvedor</span></div>
+      <div class="role-card" onclick="pickRole(this,'GESTOR')"><i class="ti ti-chart-line"></i><span>Gestor</span></div>
+      <div class="role-card" onclick="pickRole(this,'FINANCEIRO')"><i class="ti ti-coin"></i><span>Financeiro</span></div>
+      <div class="role-card" onclick="pickRole(this,'ADMIN')"><i class="ti ti-shield"></i><span>Admin</span></div>
+    </div>
+    <div class="auth-err" id="rg-err" style="display:none"></div>
+    <button class="auth-btn" id="rg-btn">Solicitar acesso</button>
+    <div class="auth-switch">Já tem conta? <span id="go-login">Entrar</span></div>
+  </div>
+</div>
+
+<div id="screen-pending" class="auth-wrap" style="display:none">
+  <div class="auth-box">
+    <div class="pending-box">
+      <i class="ti ti-clock-hour-4"></i>
+      <h3>Cadastro enviado!</h3>
+      <p>Aguardando aprovação do administrador.<br>Você será notificado quando o acesso for liberado.</p>
+    </div>
+    <div class="auth-switch" style="margin-top:24px"><span id="go-login2">← Voltar ao login</span></div>
+  </div>
+</div>
+
+<div id="app">
+  <div id="sidebar">
+    <div class="logo"><div class="name">Lifeline One</div></div>
+    <nav id="nav-menu"></nav>
+    <div class="sidebar-footer">
+      <div class="sf-av" id="sf-av"></div>
+      <div>
+        <div style="font-weight:600;color:var(--text);font-size:12px" id="sf-name"></div>
+        <div style="font-size:10px;color:var(--muted)" id="sf-role"></div>
+      </div>
+      <i class="ti ti-logout" id="btn-logout" style="margin-left:auto;cursor:pointer;color:var(--muted);font-size:16px"></i>
+    </div>
+  </div>
+  <div id="main">
+    <div id="topbar">
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div class="topbar-right">
+        <div style="font-size:11px;color:var(--muted);background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 10px">Maio 2025</div>
+        <div class="icon-btn"><i class="ti ti-bell"></i><div class="notif-dot" id="notif-dot"></div></div>
+        <div class="topbar-av" id="topbar-av"></div>
+      </div>
+    </div>
+    <div id="content">
+
+      <div id="page-dashboard" class="page active">
+        <div class="kpi-grid">
+          <div class="kpi"><i class="ti ti-users kpi-icon"></i><div class="kpi-label">Colaboradores</div><div class="kpi-value">14</div><div class="kpi-delta up"><i class="ti ti-arrow-up" style="font-size:10px"></i>+2 este mês</div></div>
+          <div class="kpi"><i class="ti ti-wallet kpi-icon"></i><div class="kpi-label">Total Salários</div><div class="kpi-value blue">R$ 84.200</div><div class="kpi-delta up"><i class="ti ti-arrow-up" style="font-size:10px"></i>+R$ 4.000</div></div>
+          <div class="kpi"><i class="ti ti-trophy kpi-icon"></i><div class="kpi-label">Total Comissão</div><div class="kpi-value amber">R$ 21.480</div><div class="kpi-delta up"><i class="ti ti-arrow-up" style="font-size:10px"></i>+18% vs abril</div></div>
+          <div class="kpi"><i class="ti ti-receipt kpi-icon"></i><div class="kpi-label">Custos Fixos</div><div class="kpi-value">R$ 12.340</div><div class="kpi-delta down"><i class="ti ti-arrow-down" style="font-size:10px"></i>-3% vs abril</div></div>
+          <div class="kpi"><i class="ti ti-trending-up kpi-icon"></i><div class="kpi-label">Lucro Estimado</div><div class="kpi-value green">R$ 67.110</div><div class="kpi-delta up"><i class="ti ti-arrow-up" style="font-size:10px"></i>+22% mês</div></div>
+          <div class="kpi"><i class="ti ti-building kpi-icon"></i><div class="kpi-label">Clientes Ativos</div><div class="kpi-value">18</div><div class="kpi-delta up"><i class="ti ti-arrow-up" style="font-size:10px"></i>+2 este mês</div></div>
+        </div>
+        <div class="alert-list">
+          <div class="alert-item warn"><i class="ti ti-alert-triangle"></i><div class="alert-text"><strong>Pagamento pendente — Contrato #0034</strong>Vencimento em 2 dias — R$ 4.800</div><div class="alert-time">Hoje</div></div>
+          <div class="alert-item danger"><i class="ti ti-x-circle"></i><div class="alert-text"><strong>Comissão de Abril ainda não paga</strong>Lucas Costa — R$ 3.200 em aberto</div><div class="alert-time">Ontem</div></div>
+          <div class="alert-item info"><i class="ti ti-info-circle"></i><div class="alert-text"><strong>Novo contrato fechado</strong>Apex Soluções — R$ 5.500/mês</div><div class="alert-time">Hoje</div></div>
+        </div>
+        <div class="chart-row">
+          <div class="chart-card"><div class="chart-title">Evolução mensal de gastos</div><div style="position:relative;height:210px"><canvas id="cGastos" role="img" aria-label="Gastos">Gastos.</canvas></div></div>
+          <div class="chart-card"><div class="chart-title">Distribuição de custos</div><div style="position:relative;height:210px"><canvas id="cDist" role="img" aria-label="Dist">Dist.</canvas></div></div>
+        </div>
+        <div class="section-header"><div class="section-title"><i class="ti ti-heart-rate-monitor" style="margin-right:6px;color:var(--neon)"></i>Centro de Controle</div></div>
+        <div class="health-grid">
+          <div class="health-item"><div class="health-score" style="color:#34d399">94</div><div class="health-label">Score Geral</div></div>
+          <div class="health-item"><div class="health-score" style="color:#60a5fa">18</div><div class="health-label">Clientes Ativos</div></div>
+          <div class="health-item"><div class="health-score" style="color:#fbbf24">R$6.2k</div><div class="health-label">Ticket Médio</div></div>
+          <div class="health-item"><div class="health-score" style="color:#a78bfa">R$42k</div><div class="health-label">LTV Médio</div></div>
+          <div class="health-item"><div class="health-score" style="color:#34d399">R$114k</div><div class="health-label">MRR</div></div>
+          <div class="health-item"><div class="health-score" style="color:#f87171">R$122k</div><div class="health-label">Despesas</div></div>
+        </div>
+      </div>
+
+      <div id="page-colaboradores" class="page">
+        <div class="section-header"><div class="section-title">Colaboradores</div><button class="btn"><i class="ti ti-plus"></i>Novo</button></div>
+        <div class="search-bar"><i class="ti ti-search"></i><input type="text" placeholder="Buscar..."/></div>
+        <div class="collab-grid">
+          <div class="collab-card"><div class="collab-top"><div class="collab-av" style="background:linear-gradient(135deg,#1d6ff5,#38bdf8)">LC</div><div><div class="collab-name">Lucas Costa</div><div class="collab-role">Closer Senior</div></div><div style="margin-left:auto"><span class="badge green">Ativo</span></div></div><div class="collab-row"><span>Salário</span><span>R$ 3.800</span></div><div class="collab-row"><span>Tempo</span><span>17 meses</span></div><div class="collab-row"><span>Custo total</span><span style="color:#f87171">R$ 64.600</span></div></div>
+          <div class="collab-card"><div class="collab-top"><div class="collab-av" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)">AM</div><div><div class="collab-name">Ana Martins</div><div class="collab-role">Gestora de Tráfego</div></div><div style="margin-left:auto"><span class="badge green">Ativo</span></div></div><div class="collab-row"><span>Salário</span><span>R$ 4.200</span></div><div class="collab-row"><span>Tempo</span><span>27 meses</span></div><div class="collab-row"><span>Custo total</span><span style="color:#f87171">R$ 113.400</span></div></div>
+          <div class="collab-card"><div class="collab-top"><div class="collab-av" style="background:linear-gradient(135deg,#059669,#34d399)">RP</div><div><div class="collab-name">Rafael Pires</div><div class="collab-role">Dev Full Stack</div></div><div style="margin-left:auto"><span class="badge green">Ativo</span></div></div><div class="collab-row"><span>Salário</span><span>R$ 6.500</span></div><div class="collab-row"><span>Tempo</span><span>22 meses</span></div><div class="collab-row"><span>Custo total</span><span style="color:#f87171">R$ 143.000</span></div></div>
+          <div class="collab-card"><div class="collab-top"><div class="collab-av" style="background:linear-gradient(135deg,#d97706,#fbbf24)">JS</div><div><div class="collab-name">Julia Santos</div><div class="collab-role">SDR</div></div><div style="margin-left:auto"><span class="badge green">Ativo</span></div></div><div class="collab-row"><span>Salário</span><span>R$ 2.200</span></div><div class="collab-row"><span>Tempo</span><span>3 meses</span></div><div class="collab-row"><span>Custo total</span><span style="color:#f87171">R$ 6.600</span></div></div>
+        </div>
+      </div>
+
+      <div id="page-closers" class="page">
+        <div class="section-header"><div class="section-title">Closers & Comissões</div><button class="btn"><i class="ti ti-plus"></i>Registrar Venda</button></div>
+        <div class="commission-total"><div><div class="commission-label">Comissão a Pagar — Maio</div><div class="commission-value">R$ 21.480</div><div class="commission-sub">↑ +18% vs abril</div></div><div style="text-align:right"><div class="commission-label">Total Vendido</div><div style="font-size:20px;font-weight:700;color:#fff;margin-top:4px">R$ 114.200</div><div class="commission-sub">Meta R$100k ✓</div></div></div>
+        <div class="closer-panel">
+          <div><div class="chart-title" style="margin-bottom:8px">Ranking</div><div class="rank-list">
+            <div class="rank-item"><div style="width:18px">🥇</div><div class="rank-av" style="background:linear-gradient(135deg,#1d6ff5,#38bdf8)">LC</div><div class="rank-info"><div class="rank-name">Lucas Costa</div><div class="rank-val">R$54k · 8 contratos</div><div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div></div><div class="rank-badge">R$10.800</div></div>
+            <div class="rank-item"><div style="width:18px">🥈</div><div class="rank-av" style="background:linear-gradient(135deg,#e11d48,#f87171)">FO</div><div class="rank-info"><div class="rank-name">Fernando Oliveira</div><div class="rank-val">R$38k · 5 contratos</div><div class="progress-bar"><div class="progress-fill" style="width:71%;background:linear-gradient(90deg,#d97706,#fbbf24)"></div></div></div><div class="rank-badge" style="color:#fbbf24">R$7.680</div></div>
+            <div class="rank-item"><div style="width:18px">🥉</div><div class="rank-av" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)">MS</div><div class="rank-info"><div class="rank-name">Mariana Silva</div><div class="rank-val">R$21k · 3 contratos</div><div class="progress-bar"><div class="progress-fill" style="width:40%;background:linear-gradient(90deg,#7c3aed,#a78bfa)"></div></div></div><div class="rank-badge" style="color:#a78bfa">R$3.000</div></div>
+          </div></div>
+          <div class="chart-card" style="margin-bottom:0"><div class="chart-title">Performance</div><div style="position:relative;height:190px"><canvas id="cClosers" role="img" aria-label="Closers">.</canvas></div></div>
+        </div>
+        <div class="table-card"><div style="padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600">Histórico</div><table><thead><tr><th>Data</th><th>Closer</th><th>Cliente</th><th>Valor</th><th>Comissão</th><th>Status</th></tr></thead><tbody><tr><td>08/05</td><td>Lucas Costa</td><td>Apex Soluções</td><td>R$5.500</td><td>R$1.100</td><td><span class="badge green">Pago</span></td></tr><tr><td>10/05</td><td>Fernando Oliveira</td><td>Lux Brand</td><td>R$6.800</td><td>R$1.360</td><td><span class="badge amber">Pendente</span></td></tr></tbody></table></div>
+      </div>
+
+      <div id="page-custos" class="page">
+        <div class="section-header"><div class="section-title">Custos Operacionais</div><button class="btn"><i class="ti ti-plus"></i>Novo Custo</button></div>
+        <div class="kpi-grid" style="margin-bottom:14px"><div class="kpi"><div class="kpi-label">Total do Mês</div><div class="kpi-value red">R$ 17.210</div></div><div class="kpi"><div class="kpi-label">Fixos</div><div class="kpi-value">R$ 12.340</div></div><div class="kpi"><div class="kpi-label">Variáveis</div><div class="kpi-value">R$ 4.870</div></div><div class="kpi"><div class="kpi-label">Maior Cat.</div><div class="kpi-value blue">Softwares</div></div></div>
+        <div class="chart-row"><div class="chart-card"><div class="chart-title">Por categoria</div><div style="position:relative;height:190px"><canvas id="cCustos" role="img" aria-label="Custos">.</canvas></div></div><div class="chart-card"><div class="chart-title">Evolução</div><div style="position:relative;height:190px"><canvas id="cCustosEv" role="img" aria-label="Ev">.</canvas></div></div></div>
+        <div class="table-card"><table><thead><tr><th>Nome</th><th>Categoria</th><th>Valor</th><th>Data</th><th>Responsável</th></tr></thead><tbody><tr><td>HubSpot</td><td><span class="badge blue">Software</span></td><td>R$1.200</td><td>01/05</td><td>Admin</td></tr><tr><td>Internet</td><td><span class="badge green">Infra</span></td><td>R$380</td><td>05/05</td><td>Rafael</td></tr><tr><td>Energia</td><td><span class="badge amber">Utilidades</span></td><td>R$620</td><td>10/05</td><td>Admin</td></tr></tbody></table></div>
+      </div>
+
+      <div id="page-clientes" class="page">
+        <div class="section-header"><div class="section-title">Clientes & Contratos</div><button class="btn"><i class="ti ti-plus"></i>Novo Cliente</button></div>
+        <div class="kpi-grid" style="margin-bottom:14px"><div class="kpi"><div class="kpi-label">Clientes Ativos</div><div class="kpi-value green">18</div></div><div class="kpi"><div class="kpi-label">MRR</div><div class="kpi-value blue">R$114.200</div></div><div class="kpi"><div class="kpi-label">Ticket Médio</div><div class="kpi-value">R$6.344</div></div><div class="kpi"><div class="kpi-label">LTV Médio</div><div class="kpi-value amber">R$42.800</div></div></div>
+        <div class="client-grid">
+          <div class="client-card"><div class="client-top"><div class="client-logo" style="background:linear-gradient(135deg,#1d6ff5,#38bdf8)">AP</div><div><div class="client-name">Apex Soluções</div><div class="client-niche">Tech / SaaS</div></div><div style="margin-left:auto"><span class="badge green">Ativo</span></div></div><div class="service-tags"><span class="service-tag">IA + CRM</span><span class="service-tag">Tráfego</span></div><div class="client-footer"><span style="color:var(--muted)">R$5.500/mês</span><span style="color:#34d399">LTV R$33k</span></div></div>
+          <div class="client-card"><div class="client-top"><div class="client-logo" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)">FT</div><div><div class="client-name">Fortis Tech</div><div class="client-niche">Indústria</div></div><div style="margin-left:auto"><span class="badge green">Ativo</span></div></div><div class="service-tags"><span class="service-tag">Social Media</span><span class="service-tag">Landing Pages</span></div><div class="client-footer"><span style="color:var(--muted)">R$8.200/mês</span><span style="color:#34d399">LTV R$65k</span></div></div>
+          <div class="client-card"><div class="client-top"><div class="client-logo" style="background:linear-gradient(135deg,#d97706,#fbbf24)">LB</div><div><div class="client-name">Lux Brand</div><div class="client-niche">E-commerce</div></div><div style="margin-left:auto"><span class="badge amber">Renovação</span></div></div><div class="service-tags"><span class="service-tag">Tráfego</span><span class="service-tag">Social Media</span></div><div class="client-footer"><span style="color:var(--muted)">R$6.800/mês</span><span style="color:#fbbf24">Vence em 12 dias</span></div></div>
+        </div>
+      </div>
+
+      <div id="page-escritorio" class="page">
+        <div class="section-header"><div class="section-title">Escritório & Patrimônio</div><button class="btn"><i class="ti ti-plus"></i>Novo Item</button></div>
+        <div class="kpi-grid" style="margin-bottom:14px"><div class="kpi"><div class="kpi-label">Valor Total</div><div class="kpi-value blue">R$84.700</div></div><div class="kpi"><div class="kpi-label">Itens</div><div class="kpi-value">27</div></div><div class="kpi"><div class="kpi-label">Em Garantia</div><div class="kpi-value green">19</div></div><div class="kpi"><div class="kpi-label">Manutenção</div><div class="kpi-value amber">3</div></div></div>
+        <div class="patrimony-grid">
+          <div class="pat-card"><div class="pat-icon"><i class="ti ti-device-desktop"></i></div><div class="pat-name">MacBook Pro M3</div><div class="pat-val">R$18.000</div><div class="pat-row"><span>2 unidades</span><span class="badge green">Garantia</span></div></div>
+          <div class="pat-card"><div class="pat-icon"><i class="ti ti-device-tv"></i></div><div class="pat-name">Monitor LG 32" 4K</div><div class="pat-val">R$4.800</div><div class="pat-row"><span>4 unidades</span><span class="badge green">Garantia</span></div></div>
+          <div class="pat-card"><div class="pat-icon"><i class="ti ti-armchair"></i></div><div class="pat-name">Cadeiras Ergonômicas</div><div class="pat-val">R$9.600</div><div class="pat-row"><span>8 unidades</span><span class="badge amber">Manutenção</span></div></div>
+          <div class="pat-card"><div class="pat-icon"><i class="ti ti-microphone"></i></div><div class="pat-name">Kit Podcast</div><div class="pat-val">R$3.400</div><div class="pat-row"><span>1 kit</span><span class="badge green">Garantia</span></div></div>
+        </div>
+      </div>
+
+      <div id="page-calendario" class="page">
+        <div class="section-header"><div class="section-title">Calendário — Maio 2025</div></div>
+        <div class="chart-card" style="margin-bottom:18px">
+          <div class="cal-header"><div class="cal-day-name">Dom</div><div class="cal-day-name">Seg</div><div class="cal-day-name">Ter</div><div class="cal-day-name">Qua</div><div class="cal-day-name">Qui</div><div class="cal-day-name">Sex</div><div class="cal-day-name">Sáb</div></div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+      </div>
+
+      <div id="page-relatorios" class="page">
+        <div class="section-header"><div class="section-title">Relatórios</div><div style="display:flex;gap:8px"><button class="btn ghost"><i class="ti ti-file-type-pdf"></i>PDF</button><button class="btn ghost"><i class="ti ti-file-spreadsheet"></i>Excel</button></div></div>
+        <div class="report-cards">
+          <div class="report-card"><i class="ti ti-chart-bar"></i><div class="report-card-title">Gastos Mensais</div><div class="report-card-desc">Por categoria</div></div>
+          <div class="report-card"><i class="ti ti-chart-line"></i><div class="report-card-title">Gastos Anuais</div><div class="report-card-desc">12 meses</div></div>
+          <div class="report-card"><i class="ti ti-users"></i><div class="report-card-title">Por Colaborador</div><div class="report-card-desc">Salário + encargos</div></div>
+          <div class="report-card"><i class="ti ti-trophy"></i><div class="report-card-title">Comissão Closers</div><div class="report-card-desc">Performance</div></div>
+          <div class="report-card"><i class="ti ti-trending-up"></i><div class="report-card-title">Crescimento</div><div class="report-card-desc">MRR e clientes</div></div>
+          <div class="report-card"><i class="ti ti-building"></i><div class="report-card-title">Patrimonial</div><div class="report-card-desc">Inventário</div></div>
+        </div>
+        <div class="chart-row">
+          <div class="chart-card"><div class="chart-title">Crescimento operacional</div><div style="position:relative;height:200px"><canvas id="cCresc" role="img" aria-label="Cresc">.</canvas></div></div>
+          <div class="chart-card"><div class="chart-title">MRR vs Despesas</div><div style="position:relative;height:200px"><canvas id="cMRR" role="img" aria-label="MRR">.</canvas></div></div>
+        </div>
+      </div>
+
+      <div id="page-usuarios" class="page">
+        <div class="section-header"><div class="section-title">Usuários & Acessos</div></div>
+        <div class="kpi-grid" style="margin-bottom:16px">
+          <div class="kpi"><div class="kpi-label">Ativos</div><div class="kpi-value green" id="stat-a">—</div></div>
+          <div class="kpi"><div class="kpi-label">Pendentes</div><div class="kpi-value amber" id="stat-p">—</div></div>
+          <div class="kpi"><div class="kpi-label">Negados</div><div class="kpi-value red" id="stat-d">—</div></div>
+        </div>
+        <div class="section-title" style="margin-bottom:10px">Solicitações pendentes</div>
+        <div id="pending-list"></div>
+        <div style="height:1px;background:var(--border);margin:18px 0"></div>
+        <div class="section-title" style="margin-bottom:10px">Usuários cadastrados</div>
+        <div class="table-card"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Função</th><th>Status</th></tr></thead><tbody id="users-table"></tbody></table></div>
+      </div>
+
+      <div id="page-configuracoes" class="page">
+        <div class="section-header"><div class="section-title">Configurações</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="chart-card">
+            <div class="chart-title" style="margin-bottom:12px">Preferências</div>
+            <div class="fg" style="margin-bottom:12px"><label>Nome da empresa</label><input type="text" value="Lifeline One"/></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+              <div class="fg"><label>Moeda</label><select><option>BRL (R$)</option><option>USD ($)</option></select></div>
+              <div class="fg"><label>Fuso</label><select><option>America/Sao_Paulo</option></select></div>
+            </div>
+            <button class="btn" style="width:100%">Salvar</button>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title" style="margin-bottom:12px">Log de Atividades</div>
+            <table><thead><tr><th>Ação</th><th>Usuário</th><th>Hora</th></tr></thead><tbody>
+              <tr><td>Venda registrada</td><td>Lucas Costa</td><td>08/05 14:32</td></tr>
+              <tr><td>Colaborador adicionado</td><td>Admin</td><td>02/05 09:11</td></tr>
+            </tbody></table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- DADOS EM MEMÓRIA (sem localStorage) ----
+var USERS = [
+  {name:'Admin Master', email:'admin@lifelineone.com', pass:'admin123', role:'ADMIN', status:'active'}
+];
+var SESSION = null;
+var chosenRole = '';
+
+// ---- TELAS ----
+function showScreen(id) {
+  ['screen-login','screen-register','screen-pending'].forEach(function(s){
+    document.getElementById(s).style.display = 'none';
+  });
+  document.getElementById(id).style.display = 'flex';
+}
+
+// ---- ROLE ----
+function pickRole(el, r) {
+  document.querySelectorAll('.role-card').forEach(function(c){ c.classList.remove('sel'); });
+  el.classList.add('sel');
+  chosenRole = r;
+}
+
+// ---- LOGIN ----
+function doLogin() {
+  var email = document.getElementById('li-email').value.trim().toLowerCase();
+  var pass  = document.getElementById('li-pass').value;
+  var err   = document.getElementById('li-err');
+  err.style.display = 'none';
+  var u = null;
+  for(var i=0;i<USERS.length;i++){
+    if(USERS[i].email.toLowerCase()===email && USERS[i].pass===pass){ u=USERS[i]; break; }
+  }
+  if(!u){ err.style.display='block'; return; }
+  if(u.status==='pending'){ showScreen('screen-pending'); return; }
+  if(u.status==='denied'){ err.textContent='Acesso negado pelo administrador.'; err.style.display='block'; return; }
+  SESSION = u;
+  loadDashboard(u);
+}
+
+// ---- CADASTRO ----
+function doRegister() {
+  var name  = document.getElementById('rg-name').value.trim();
+  var email = document.getElementById('rg-email').value.trim().toLowerCase();
+  var pass  = document.getElementById('rg-pass').value;
+  var err   = document.getElementById('rg-err');
+  err.style.display='none';
+  if(!name||!email||!pass||!chosenRole){ err.textContent='Preencha todos os campos e selecione sua função.'; err.style.display='block'; return; }
+  if(pass.length<6){ err.textContent='Senha deve ter ao menos 6 caracteres.'; err.style.display='block'; return; }
+  for(var i=0;i<USERS.length;i++){
+    if(USERS[i].email.toLowerCase()===email){ err.textContent='Este e-mail já está cadastrado.'; err.style.display='block'; return; }
+  }
+  USERS.push({name:name, email:email, pass:pass, role:chosenRole, status:'pending'});
+  showScreen('screen-pending');
+}
+
+// ---- LOGOUT ----
+function logout() {
+  SESSION = null;
+  document.getElementById('app').style.display = 'none';
+  showScreen('screen-login');
+}
+
+// ---- MENUS POR ROLE ----
+var MENUS = [
+  {id:'dashboard',    label:'Dashboard Geral',     icon:'ti-layout-dashboard', roles:['ADMIN','GESTOR','FINANCEIRO']},
+  {id:'colaboradores',label:'Colaboradores',        icon:'ti-users',            roles:['ADMIN','GESTOR']},
+  {id:'closers',      label:'Closers / Comissão',   icon:'ti-trophy',           roles:['ADMIN','GESTOR','CLOSER']},
+  {id:'custos',       label:'Custos Operacionais',  icon:'ti-receipt',          roles:['ADMIN','FINANCEIRO','GESTOR']},
+  {id:'clientes',     label:'Clientes / Contratos', icon:'ti-building',         roles:['ADMIN','GESTOR','DEV','CLOSER']},
+  {id:'escritorio',   label:'Escritório',           icon:'ti-armchair',         roles:['ADMIN','GESTOR']},
+  {id:'calendario',   label:'Calendário',           icon:'ti-calendar',         roles:['ADMIN','GESTOR','CLOSER','SDR','DEV','FINANCEIRO']},
+  {id:'relatorios',   label:'Relatórios',           icon:'ti-chart-bar',        roles:['ADMIN','GESTOR','FINANCEIRO']},
+  {id:'usuarios',     label:'Usuários & Acessos',   icon:'ti-shield-check',     roles:['ADMIN']},
+  {id:'configuracoes',label:'Configurações',        icon:'ti-settings',         roles:['ADMIN']},
+];
+
+function loadDashboard(user) {
+  document.getElementById('app').style.display = 'flex';
+  var ini = user.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+  document.getElementById('sf-av').textContent    = ini;
+  document.getElementById('sf-name').textContent  = user.name;
+  document.getElementById('sf-role').textContent  = user.role;
+  document.getElementById('topbar-av').textContent = ini;
+
+  var nav = document.getElementById('nav-menu');
+  nav.innerHTML = '';
+  var visible = MENUS.filter(function(m){ return m.roles.indexOf(user.role)>=0; });
+  visible.forEach(function(m, i){
+    var d = document.createElement('div');
+    d.className = 'nav-item' + (i===0?' active':'');
+    d.innerHTML = '<i class="ti '+m.icon+'"></i>'+m.label;
+    d.setAttribute('data-id', m.id);
+    d.onclick = function(){ goPage(m.id, d); };
+    nav.appendChild(d);
+  });
+
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('page-'+visible[0].id).classList.add('active');
+  document.getElementById('page-title').textContent = visible[0].label;
+
+  initCharts();
+  buildCal();
+  if(user.role==='ADMIN') refreshUsers();
+}
+
+function goPage(id, el) {
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  el.classList.add('active');
+  document.getElementById('page-'+id).classList.add('active');
+  var m = MENUS.filter(function(x){ return x.id===id; })[0];
+  document.getElementById('page-title').textContent = m ? m.label : '';
+  if(id==='relatorios' && !window.cRel) initRelCharts();
+  if(id==='closers'    && !window.cCl)  initCloserCharts();
+  if(id==='custos'     && !window.cCu)  initCustosCharts();
+  if(id==='usuarios') refreshUsers();
+}
+
+// ---- USUARIOS ----
+var RC = {ADMIN:'blue',CLOSER:'amber',SDR:'red',DEV:'green',GESTOR:'purple',FINANCEIRO:'gray'};
+var AVC = ['linear-gradient(135deg,#1d6ff5,#38bdf8)','linear-gradient(135deg,#7c3aed,#a78bfa)','linear-gradient(135deg,#059669,#34d399)','linear-gradient(135deg,#d97706,#fbbf24)','linear-gradient(135deg,#e11d48,#f87171)'];
+
+function refreshUsers() {
+  var active  = USERS.filter(function(u){ return u.status==='active'; });
+  var pending = USERS.filter(function(u){ return u.status==='pending'; });
+  var denied  = USERS.filter(function(u){ return u.status==='denied'; });
+  document.getElementById('stat-a').textContent = active.length;
+  document.getElementById('stat-p').textContent = pending.length;
+  document.getElementById('stat-d').textContent = denied.length;
+  document.getElementById('notif-dot').style.display = pending.length>0 ? 'block' : 'none';
+
+  var pl = document.getElementById('pending-list');
+  if(!pending.length){
+    pl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Nenhuma solicitação pendente.</div>';
+  } else {
+    pl.innerHTML = pending.map(function(u,i){
+      var ini = u.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+      return '<div class="user-req-card">'+
+        '<div class="user-req-av" style="background:'+AVC[i%AVC.length]+'">'+ini+'</div>'+
+        '<div class="user-req-info"><div class="user-req-name">'+u.name+'</div>'+
+        '<div class="user-req-detail">'+u.email+' · <strong style="color:var(--text)">'+u.role+'</strong></div></div>'+
+        '<div class="user-req-actions">'+
+        '<button class="approve-btn" onclick="approveUser(\''+u.email+'\')"><i class="ti ti-check"></i> Aprovar</button>'+
+        '<button class="deny-btn" onclick="denyUser(\''+u.email+'\')"><i class="ti ti-x"></i> Negar</button>'+
+        '</div></div>';
+    }).join('');
+  }
+
+  var tb = document.getElementById('users-table');
+  tb.innerHTML = active.map(function(u){
+    return '<tr><td>'+u.name+'</td><td>'+u.email+'</td>'+
+      '<td><span class="badge '+(RC[u.role]||'gray')+'">'+u.role+'</span></td>'+
+      '<td><span class="badge green">Ativo</span></td></tr>';
+  }).join('');
+}
+
+function approveUser(email) {
+  USERS.forEach(function(u){ if(u.email===email) u.status='active'; });
+  refreshUsers();
+}
+function denyUser(email) {
+  USERS.forEach(function(u){ if(u.email===email) u.status='denied'; });
+  refreshUsers();
+}
+
+// ---- CHARTS ----
+var gc='rgba(255,255,255,.05)', blue='#1d6ff5', neon='#38bdf8', green='#34d399', amber='#fbbf24', red='#f87171', mu='rgba(255,255,255,.32)';
+var bO={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11}}}}};
+
+function initCharts() {
+  if(window.cDash) return; window.cDash=true;
+  new Chart(document.getElementById('cGastos'),{type:'bar',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Salários',data:[76000,78000,80000,81000,84200],backgroundColor:'rgba(29,111,245,.55)',borderRadius:3},{label:'Comissão',data:[14000,16000,17000,18200,21480],backgroundColor:'rgba(56,189,248,.45)',borderRadius:3},{label:'Custos',data:[11200,12000,11800,12100,17210],backgroundColor:'rgba(251,191,36,.4)',borderRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:10,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+  new Chart(document.getElementById('cDist'),{type:'doughnut',data:{labels:['Salários','Comissão','Softwares','Infra','Outros'],datasets:[{data:[84200,21480,6400,1000,6810],backgroundColor:[blue,neon,'rgba(167,139,250,.8)',green,amber],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{color:mu,boxWidth:9,font:{size:11},padding:7}}}}});
+}
+function initCloserCharts() {
+  window.cCl=true;
+  new Chart(document.getElementById('cClosers'),{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Lucas',data:[38000,42000,48000,50000,54000],borderColor:neon,backgroundColor:'rgba(56,189,248,.07)',tension:.4,fill:true,borderWidth:2,pointRadius:3},{label:'Fernando',data:[20000,24000,30000,34000,38400],borderColor:amber,backgroundColor:'rgba(251,191,36,.04)',tension:.4,fill:true,borderWidth:2,pointRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:9,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+}
+function initCustosCharts() {
+  window.cCu=true;
+  new Chart(document.getElementById('cCustos'),{type:'bar',data:{labels:['Software','Infra','Utilidades','Escritório','Outros'],datasets:[{data:[7980,1380,620,355,2875],backgroundColor:[blue,'rgba(52,211,153,.6)',amber,'rgba(167,139,250,.7)','rgba(248,113,113,.6)'],borderRadius:3}]},options:Object.assign({},bO,{indexAxis:'y',scales:{y:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},x:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+v}}}}})});
+  new Chart(document.getElementById('cCustosEv'),{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{data:[11200,12000,11800,12100,17210],borderColor:red,backgroundColor:'rgba(248,113,113,.07)',tension:.4,fill:true,borderWidth:2,pointRadius:3}]},options:Object.assign({},bO,{scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+}
+function initRelCharts() {
+  window.cRel=true;
+  new Chart(document.getElementById('cCresc'),{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Clientes',data:[12,13,15,16,18],borderColor:green,backgroundColor:'rgba(52,211,153,.07)',tension:.4,fill:true,borderWidth:2,pointRadius:3,yAxisID:'y'},{label:'MRR(k)',data:[72,80,92,104,114],borderColor:neon,backgroundColor:'rgba(56,189,248,.05)',tension:.4,fill:true,borderWidth:2,pointRadius:3,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:mu,boxWidth:9,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11}},position:'left'},y2:{grid:{display:false},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+v+'k'}},position:'right'}}}});
+  new Chart(document.getElementById('cMRR'),{type:'bar',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'MRR',data:[72000,80000,92000,104000,114200],backgroundColor:'rgba(29,111,245,.55)',borderRadius:3},{label:'Despesas',data:[101200,106000,108800,111300,122890],backgroundColor:'rgba(248,113,113,.45)',borderRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:9,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+}
+
+function buildCal() {
+  var grid=document.getElementById('calGrid'); if(!grid)return;
+  var sales=[8,9,10,12,14,19,22,23];
+  for(var i=0;i<4;i++) grid.appendChild(document.createElement('div'));
+  for(var d=1;d<=31;d++){
+    var c=document.createElement('div'); c.className='cal-cell';
+    if(sales.indexOf(d)>=0) c.classList.add('has-sale');
+    if(d===20) c.classList.add('today');
+    c.innerHTML=d+(sales.indexOf(d)>=0?'<div class="dot"></div>':'');
+    grid.appendChild(c);
+  }
+}
+
+// ---- EVENTOS ----
+document.getElementById('li-btn').onclick    = doLogin;
+document.getElementById('rg-btn').onclick    = doRegister;
+document.getElementById('btn-logout').onclick = logout;
+document.getElementById('go-reg').onclick    = function(){ showScreen('screen-register'); };
+document.getElementById('go-login').onclick  = function(){ showScreen('screen-login'); };
+document.getElementById('go-login2').onclick = function(){ showScreen('screen-login'); };
+document.getElementById('li-pass').onkeydown = function(e){ if(e.key==='Enter') doLogin(); };
+
+// ---- INIT ----
+showScreen('screen-login');
+</script>
+</body>
+</html>
