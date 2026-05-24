@@ -176,7 +176,7 @@ tr:hover td{background:rgba(29,111,245,.04)}
     <div class="field"><label>E-mail</label><input type="text" id="li-email" placeholder="admin@lifelineone.com"/></div>
     <div class="field"><label>Senha</label><input type="password" id="li-pass" placeholder="••••••••"/></div>
     <div class="auth-err" id="li-err" style="display:none">E-mail ou senha incorretos.</div>
-    <button class="auth-btn" id="li-btn">Entrar</button>
+    <button class="auth-btn" onclick="doLogin()">Entrar</button>
     <div class="auth-switch">Não tem conta? <span id="go-reg">Criar conta</span></div>
   </div>
 </div>
@@ -198,7 +198,7 @@ tr:hover td{background:rgba(29,111,245,.04)}
       <div class="role-card" onclick="pickRole(this,'ADMIN')"><i class="ti ti-shield"></i><span>Admin</span></div>
     </div>
     <div class="auth-err" id="rg-err" style="display:none"></div>
-    <button class="auth-btn" id="rg-btn">Solicitar acesso</button>
+    <button class="auth-btn" onclick="doRegister()">Solicitar acesso</button>
     <div class="auth-switch">Já tem conta? <span id="go-login">Entrar</span></div>
   </div>
 </div>
@@ -761,24 +761,8 @@ function buildCal() {
   }
 }
 
-// ---- EVENTOS ----
-window.onload = function() {
-  var bl = document.getElementById('li-btn');
-  var br = document.getElementById('rg-btn');
-  var lo = document.getElementById('btn-logout');
-  var gr = document.getElementById('go-reg');
-  var gl = document.getElementById('go-login');
-  var gl2 = document.getElementById('go-login2');
-  var lp = document.getElementById('li-pass');
-  if(bl) bl.onclick = doLogin;
-  if(br) br.onclick = doRegister;
-  if(lo) lo.onclick = logout;
-  if(gr) gr.onclick = function(){ showScreen('screen-register'); };
-  if(gl) gl.onclick = function(){ showScreen('screen-login'); };
-  if(gl2) gl2.onclick = function(){ showScreen('screen-login'); };
-  if(lp) lp.onkeydown = function(e){ if(e.key==='Enter') doLogin(); };
-  showScreen('screen-login');
-};
+// ---- INIT ----
+showScreen('screen-login');
 </script>
 </body>
 </html>
