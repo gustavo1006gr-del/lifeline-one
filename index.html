@@ -762,16 +762,23 @@ function buildCal() {
 }
 
 // ---- EVENTOS ----
-document.getElementById('li-btn').onclick    = doLogin;
-document.getElementById('rg-btn').onclick    = doRegister;
-document.getElementById('btn-logout').onclick = logout;
-document.getElementById('go-reg').onclick    = function(){ showScreen('screen-register'); };
-document.getElementById('go-login').onclick  = function(){ showScreen('screen-login'); };
-document.getElementById('go-login2').onclick = function(){ showScreen('screen-login'); };
-document.getElementById('li-pass').onkeydown = function(e){ if(e.key==='Enter') doLogin(); };
-
-// ---- INIT ----
-showScreen('screen-login');
+window.onload = function() {
+  var bl = document.getElementById('li-btn');
+  var br = document.getElementById('rg-btn');
+  var lo = document.getElementById('btn-logout');
+  var gr = document.getElementById('go-reg');
+  var gl = document.getElementById('go-login');
+  var gl2 = document.getElementById('go-login2');
+  var lp = document.getElementById('li-pass');
+  if(bl) bl.onclick = doLogin;
+  if(br) br.onclick = doRegister;
+  if(lo) lo.onclick = logout;
+  if(gr) gr.onclick = function(){ showScreen('screen-register'); };
+  if(gl) gl.onclick = function(){ showScreen('screen-login'); };
+  if(gl2) gl2.onclick = function(){ showScreen('screen-login'); };
+  if(lp) lp.onkeydown = function(e){ if(e.key==='Enter') doLogin(); };
+  showScreen('screen-login');
+};
 </script>
 </body>
 </html>
