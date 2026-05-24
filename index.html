@@ -462,7 +462,12 @@ var MENUS = [
 ];
 
 function loadDashboard(user) {
-  document.getElementById('app').style.display = 'flex';
+  // Esconde todas as telas de auth
+  document.getElementById('screen-login').style.display = 'none';
+  document.getElementById('screen-register').style.display = 'none';
+  document.getElementById('screen-pending').style.display = 'none';
+  // Mostra o app
+  document.getElementById('app').style.cssText = 'display:flex;height:100vh;overflow:hidden;';
   var ini = user.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
   document.getElementById('sf-av').textContent    = ini;
   document.getElementById('sf-name').textContent  = user.name;
