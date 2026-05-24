@@ -268,13 +268,47 @@ tr:hover td{background:rgba(29,111,245,.04)}
       </div>
 
       <div id="page-colaboradores" class="page">
-        <div class="section-header"><div class="section-title">Colaboradores</div><button class="btn"><i class="ti ti-plus"></i>Novo</button></div>
-        <div class="search-bar"><i class="ti ti-search"></i><input type="text" placeholder="Buscar..."/></div>
-        <div class="collab-grid">
-          <div class="collab-card"><div class="collab-top"><div class="collab-av" style="background:linear-gradient(135deg,#1d6ff5,#38bdf8)">LC</div><div><div class="collab-name">Lucas Costa</div><div class="collab-role">Closer Senior</div></div><div style="margin-left:auto"><span class="badge green">Ativo</span></div></div><div class="collab-row"><span>Salário</span><span>R$ 3.800</span></div><div class="collab-row"><span>Tempo</span><span>17 meses</span></div><div class="collab-row"><span>Custo total</span><span style="color:#f87171">R$ 64.600</span></div></div>
-          <div class="collab-card"><div class="collab-top"><div class="collab-av" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)">AM</div><div><div class="collab-name">Ana Martins</div><div class="collab-role">Gestora de Tráfego</div></div><div style="margin-left:auto"><span class="badge green">Ativo</span></div></div><div class="collab-row"><span>Salário</span><span>R$ 4.200</span></div><div class="collab-row"><span>Tempo</span><span>27 meses</span></div><div class="collab-row"><span>Custo total</span><span style="color:#f87171">R$ 113.400</span></div></div>
-          <div class="collab-card"><div class="collab-top"><div class="collab-av" style="background:linear-gradient(135deg,#059669,#34d399)">RP</div><div><div class="collab-name">Rafael Pires</div><div class="collab-role">Dev Full Stack</div></div><div style="margin-left:auto"><span class="badge green">Ativo</span></div></div><div class="collab-row"><span>Salário</span><span>R$ 6.500</span></div><div class="collab-row"><span>Tempo</span><span>22 meses</span></div><div class="collab-row"><span>Custo total</span><span style="color:#f87171">R$ 143.000</span></div></div>
-          <div class="collab-card"><div class="collab-top"><div class="collab-av" style="background:linear-gradient(135deg,#d97706,#fbbf24)">JS</div><div><div class="collab-name">Julia Santos</div><div class="collab-role">SDR</div></div><div style="margin-left:auto"><span class="badge green">Ativo</span></div></div><div class="collab-row"><span>Salário</span><span>R$ 2.200</span></div><div class="collab-row"><span>Tempo</span><span>3 meses</span></div><div class="collab-row"><span>Custo total</span><span style="color:#f87171">R$ 6.600</span></div></div>
+        <div class="section-header">
+          <div class="section-title">Colaboradores</div>
+          <button class="btn" onclick="abrirModalColaborador()"><i class="ti ti-plus"></i>Novo Colaborador</button>
+        </div>
+        <div class="search-bar"><i class="ti ti-search"></i><input type="text" id="busca-colab" placeholder="Buscar por nome ou cargo..." oninput="filtrarColaboradores()"/></div>
+        <div class="filter-row">
+          <div class="filter-btn active" onclick="filtroStatus='';filtrarColaboradores();setFiltroAtivo(this)">Todos</div>
+          <div class="filter-btn" onclick="filtroStatus='ativo';filtrarColaboradores();setFiltroAtivo(this)">Ativos</div>
+          <div class="filter-btn" onclick="filtroStatus='inativo';filtrarColaboradores();setFiltroAtivo(this)">Inativos</div>
+        </div>
+        <div id="collab-grid" class="collab-grid"></div>
+      </div>
+
+      <!-- MODAL COLABORADOR -->
+      <div id="modal-colab" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center">
+        <div style="background:#0d1e3a;border:1px solid #1a3060;border-radius:16px;padding:28px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+            <div style="font-size:16px;font-weight:700;color:#fff" id="modal-colab-title">Novo Colaborador</div>
+            <i class="ti ti-x" style="cursor:pointer;color:#6b8aad;font-size:20px" onclick="fecharModalColaborador()"></i>
+          </div>
+          <input type="hidden" id="colab-id"/>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="fg" style="grid-column:1/-1"><label>Nome completo</label><input type="text" id="colab-nome" placeholder="Nome do colaborador"/></div>
+            <div class="fg"><label>Cargo / Função</label><input type="text" id="colab-cargo" placeholder="Ex: Closer, Dev..."/></div>
+            <div class="fg"><label>Salário (R$)</label><input type="number" id="colab-salario" placeholder="0,00"/></div>
+            <div class="fg"><label>Data de entrada</label><input type="date" id="colab-data"/></div>
+            <div class="fg"><label>Status</label>
+              <select id="colab-status">
+                <option value="ativo">Ativo</option>
+                <option value="inativo">Inativo</option>
+              </select>
+            </div>
+            <div class="fg"><label>Telefone</label><input type="text" id="colab-tel" placeholder="(11) 99999-9999"/></div>
+            <div class="fg"><label>E-mail</label><input type="text" id="colab-email" placeholder="email@empresa.com"/></div>
+            <div class="fg" style="grid-column:1/-1"><label>Observações</label><input type="text" id="colab-obs" placeholder="Anotações internas..."/></div>
+          </div>
+          <div id="colab-err" style="color:#f87171;font-size:12px;margin-top:10px;display:none"></div>
+          <div style="display:flex;gap:10px;margin-top:20px">
+            <button class="btn ghost" style="flex:1" onclick="fecharModalColaborador()">Cancelar</button>
+            <button class="btn" style="flex:2" onclick="salvarColaborador()">Salvar Colaborador</button>
+          </div>
         </div>
       </div>
 
@@ -385,10 +419,24 @@ tr:hover td{background:rgba(29,111,245,.04)}
 </div>
 
 <script>
-// ---- DADOS EM MEMÓRIA (sem localStorage) ----
-var USERS = [
-  {name:'Admin Master', email:'admin@lifelineone.com', pass:'admin123', role:'ADMIN', status:'active'}
-];
+const SUPA_URL = 'https://qznxffulpdkemswahftg.supabase.co';
+const SUPA_KEY = 'sb_publishable_cdKeJu5Q9aQKwigeNldzwQ_pvcJorCp';
+
+async function supaFetch(path, method='GET', body=null) {
+  const opts = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Prefer': method==='POST' ? 'return=representation' : ''
+    }
+  };
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(SUPA_URL + '/rest/v1/' + path, opts);
+  if(!res.ok) { const e = await res.text(); console.error(e); return null; }
+  return res.status === 204 ? true : res.json();
+}
 var SESSION = null;
 var chosenRole = '';
 
@@ -506,6 +554,127 @@ function goPage(id, el) {
   if(id==='closers'    && !window.cCl)  initCloserCharts();
   if(id==='custos'     && !window.cCu)  initCustosCharts();
   if(id==='usuarios') refreshUsers();
+  if(id==='colaboradores') carregarColaboradores();
+}
+
+// ---- COLABORADORES ----
+var todosColabs = [];
+var filtroStatus = '';
+var avColors = ['linear-gradient(135deg,#1d6ff5,#38bdf8)','linear-gradient(135deg,#7c3aed,#a78bfa)','linear-gradient(135deg,#059669,#34d399)','linear-gradient(135deg,#d97706,#fbbf24)','linear-gradient(135deg,#e11d48,#f87171)','linear-gradient(135deg,#0284c7,#38bdf8)'];
+
+async function carregarColaboradores() {
+  const data = await supaFetch('colaboradores?order=criado_em.desc');
+  if(!data) return;
+  todosColabs = data;
+  renderColaboradores(todosColabs);
+}
+
+function filtrarColaboradores() {
+  const busca = document.getElementById('busca-colab').value.toLowerCase();
+  const filtrado = todosColabs.filter(function(c){
+    const matchBusca = c.nome.toLowerCase().includes(busca) || (c.cargo||'').toLowerCase().includes(busca);
+    const matchStatus = !filtroStatus || c.status === filtroStatus;
+    return matchBusca && matchStatus;
+  });
+  renderColaboradores(filtrado);
+}
+
+function setFiltroAtivo(el) {
+  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+function calcMeses(dataEntrada) {
+  if(!dataEntrada) return '—';
+  const diff = new Date() - new Date(dataEntrada);
+  const meses = Math.floor(diff / (1000*60*60*24*30));
+  return meses + ' meses';
+}
+
+function renderColaboradores(lista) {
+  const grid = document.getElementById('collab-grid');
+  if(!lista.length){ grid.innerHTML='<div style="color:var(--muted);padding:20px 0">Nenhum colaborador encontrado.</div>'; return; }
+  grid.innerHTML = lista.map(function(c, i){
+    const ini = c.nome.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+    const cor = avColors[i % avColors.length];
+    const sal = c.salario ? 'R$ '+Number(c.salario).toLocaleString('pt-BR') : '—';
+    return '<div class="collab-card">'+
+      '<div class="collab-top">'+
+        '<div class="collab-av" style="background:'+cor+'">'+ini+'</div>'+
+        '<div><div class="collab-name">'+c.nome+'</div><div class="collab-role">'+(c.cargo||'—')+'</div></div>'+
+        '<div style="margin-left:auto"><span class="badge '+(c.status==='ativo'?'green':'red')+'">'+c.status+'</span></div>'+
+      '</div>'+
+      '<div class="collab-row"><span>Salário</span><span>'+sal+'</span></div>'+
+      '<div class="collab-row"><span>Tempo</span><span>'+calcMeses(c.data_entrada)+'</span></div>'+
+      '<div style="display:flex;gap:6px;margin-top:10px">'+
+        '<button class="btn ghost" style="flex:1;font-size:11px;padding:5px" onclick="editarColaborador(\''+c.id+'\')"><i class="ti ti-edit"></i> Editar</button>'+
+        '<button class="btn" style="background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:#f87171;flex:1;font-size:11px;padding:5px" onclick="excluirColaborador(\''+c.id+'\')"><i class="ti ti-trash"></i> Excluir</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function abrirModalColaborador() {
+  document.getElementById('colab-id').value = '';
+  document.getElementById('colab-nome').value = '';
+  document.getElementById('colab-cargo').value = '';
+  document.getElementById('colab-salario').value = '';
+  document.getElementById('colab-data').value = '';
+  document.getElementById('colab-status').value = 'ativo';
+  document.getElementById('colab-tel').value = '';
+  document.getElementById('colab-email').value = '';
+  document.getElementById('colab-obs').value = '';
+  document.getElementById('colab-err').style.display = 'none';
+  document.getElementById('modal-colab-title').textContent = 'Novo Colaborador';
+  document.getElementById('modal-colab').style.display = 'flex';
+}
+
+function fecharModalColaborador() {
+  document.getElementById('modal-colab').style.display = 'none';
+}
+
+function editarColaborador(id) {
+  const c = todosColabs.find(function(x){ return x.id===id; });
+  if(!c) return;
+  document.getElementById('colab-id').value = c.id;
+  document.getElementById('colab-nome').value = c.nome||'';
+  document.getElementById('colab-cargo').value = c.cargo||'';
+  document.getElementById('colab-salario').value = c.salario||'';
+  document.getElementById('colab-data').value = c.data_entrada||'';
+  document.getElementById('colab-status').value = c.status||'ativo';
+  document.getElementById('colab-tel').value = c.telefone||'';
+  document.getElementById('colab-email').value = c.email||'';
+  document.getElementById('colab-obs').value = c.observacoes||'';
+  document.getElementById('modal-colab-title').textContent = 'Editar Colaborador';
+  document.getElementById('modal-colab').style.display = 'flex';
+}
+
+async function salvarColaborador() {
+  const id = document.getElementById('colab-id').value;
+  const nome = document.getElementById('colab-nome').value.trim();
+  const err = document.getElementById('colab-err');
+  if(!nome){ err.textContent='Nome é obrigatório.'; err.style.display='block'; return; }
+  const payload = {
+    nome: nome,
+    cargo: document.getElementById('colab-cargo').value,
+    salario: document.getElementById('colab-salario').value||null,
+    data_entrada: document.getElementById('colab-data').value||null,
+    status: document.getElementById('colab-status').value,
+    telefone: document.getElementById('colab-tel').value,
+    email: document.getElementById('colab-email').value,
+    observacoes: document.getElementById('colab-obs').value
+  };
+  var result;
+  if(id){ result = await supaFetch('colaboradores?id=eq.'+id, 'PATCH', payload); }
+  else { result = await supaFetch('colaboradores', 'POST', payload); }
+  if(result){ fecharModalColaborador(); carregarColaboradores(); }
+  else { err.textContent='Erro ao salvar. Tente novamente.'; err.style.display='block'; }
+}
+
+async function excluirColaborador(id) {
+  if(!confirm('Tem certeza que deseja excluir este colaborador?')) return;
+  await supaFetch('colaboradores?id=eq.'+id, 'DELETE');
+  carregarColaboradores();
 }
 
 // ---- USUARIOS ----
