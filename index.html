@@ -313,17 +313,49 @@ tr:hover td{background:rgba(29,111,245,.04)}
       </div>
 
       <div id="page-closers" class="page">
-        <div class="section-header"><div class="section-title">Closers & Comissões</div><button class="btn"><i class="ti ti-plus"></i>Registrar Venda</button></div>
-        <div class="commission-total"><div><div class="commission-label">Comissão a Pagar — Maio</div><div class="commission-value">R$ 21.480</div><div class="commission-sub">↑ +18% vs abril</div></div><div style="text-align:right"><div class="commission-label">Total Vendido</div><div style="font-size:20px;font-weight:700;color:#fff;margin-top:4px">R$ 114.200</div><div class="commission-sub">Meta R$100k ✓</div></div></div>
+        <div class="section-header"><div class="section-title">Closers & Comissões</div><button class="btn" onclick="abrirModalVenda()"><i class="ti ti-plus"></i>Registrar Venda</button></div>
+        <div class="commission-total" id="commission-total">
+          <div><div class="commission-label">Comissão a Pagar — Mês Atual</div><div class="commission-value" id="total-comissao">R$ 0</div><div class="commission-sub" id="total-vendas-sub">Carregando...</div></div>
+          <div style="text-align:right"><div class="commission-label">Total Vendido</div><div style="font-size:20px;font-weight:700;color:#fff;margin-top:4px" id="total-vendido">R$ 0</div><div class="commission-sub" id="meta-sub">Meta: R$ 100.000</div></div>
+        </div>
         <div class="closer-panel">
-          <div><div class="chart-title" style="margin-bottom:8px">Ranking</div><div class="rank-list">
-            <div class="rank-item"><div style="width:18px">🥇</div><div class="rank-av" style="background:linear-gradient(135deg,#1d6ff5,#38bdf8)">LC</div><div class="rank-info"><div class="rank-name">Lucas Costa</div><div class="rank-val">R$54k · 8 contratos</div><div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div></div><div class="rank-badge">R$10.800</div></div>
-            <div class="rank-item"><div style="width:18px">🥈</div><div class="rank-av" style="background:linear-gradient(135deg,#e11d48,#f87171)">FO</div><div class="rank-info"><div class="rank-name">Fernando Oliveira</div><div class="rank-val">R$38k · 5 contratos</div><div class="progress-bar"><div class="progress-fill" style="width:71%;background:linear-gradient(90deg,#d97706,#fbbf24)"></div></div></div><div class="rank-badge" style="color:#fbbf24">R$7.680</div></div>
-            <div class="rank-item"><div style="width:18px">🥉</div><div class="rank-av" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)">MS</div><div class="rank-info"><div class="rank-name">Mariana Silva</div><div class="rank-val">R$21k · 3 contratos</div><div class="progress-bar"><div class="progress-fill" style="width:40%;background:linear-gradient(90deg,#7c3aed,#a78bfa)"></div></div></div><div class="rank-badge" style="color:#a78bfa">R$3.000</div></div>
-          </div></div>
+          <div><div class="chart-title" style="margin-bottom:8px">Ranking do Mês</div><div class="rank-list" id="rank-list"><div style="color:var(--muted);font-size:13px">Carregando...</div></div></div>
           <div class="chart-card" style="margin-bottom:0"><div class="chart-title">Performance</div><div style="position:relative;height:190px"><canvas id="cClosers" role="img" aria-label="Closers">.</canvas></div></div>
         </div>
-        <div class="table-card"><div style="padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600">Histórico</div><table><thead><tr><th>Data</th><th>Closer</th><th>Cliente</th><th>Valor</th><th>Comissão</th><th>Status</th></tr></thead><tbody><tr><td>08/05</td><td>Lucas Costa</td><td>Apex Soluções</td><td>R$5.500</td><td>R$1.100</td><td><span class="badge green">Pago</span></td></tr><tr><td>10/05</td><td>Fernando Oliveira</td><td>Lux Brand</td><td>R$6.800</td><td>R$1.360</td><td><span class="badge amber">Pendente</span></td></tr></tbody></table></div>
+        <div class="table-card">
+          <div style="padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600">Histórico de Vendas</div>
+          <table><thead><tr><th>Data</th><th>Closer</th><th>Cliente</th><th>Valor</th><th>Comissão</th><th>Status</th><th></th></tr></thead>
+          <tbody id="vendas-table"></tbody></table>
+        </div>
+      </div>
+
+      <!-- MODAL VENDA -->
+      <div id="modal-venda" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center">
+        <div style="background:#0d1e3a;border:1px solid #1a3060;border-radius:16px;padding:28px;width:100%;max-width:460px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+            <div style="font-size:16px;font-weight:700;color:#fff">Registrar Venda</div>
+            <i class="ti ti-x" style="cursor:pointer;color:#6b8aad;font-size:20px" onclick="fecharModalVenda()"></i>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="fg"><label>Closer</label><input type="text" id="venda-closer" placeholder="Nome do closer"/></div>
+            <div class="fg"><label>Cliente</label><input type="text" id="venda-cliente" placeholder="Nome do cliente"/></div>
+            <div class="fg"><label>Valor da venda (R$)</label><input type="number" id="venda-valor" placeholder="0,00"/></div>
+            <div class="fg"><label>% Comissão</label><input type="number" id="venda-comissao" placeholder="20" value="20"/></div>
+            <div class="fg"><label>Data da venda</label><input type="date" id="venda-data"/></div>
+            <div class="fg"><label>Status</label>
+              <select id="venda-status">
+                <option value="pendente">Pendente</option>
+                <option value="pago">Pago</option>
+                <option value="cancelado">Cancelado</option>
+              </select>
+            </div>
+          </div>
+          <div id="venda-err" style="color:#f87171;font-size:12px;margin-top:10px;display:none"></div>
+          <div style="display:flex;gap:10px;margin-top:20px">
+            <button class="btn ghost" style="flex:1" onclick="fecharModalVenda()">Cancelar</button>
+            <button class="btn" style="flex:2" onclick="salvarVenda()">Salvar Venda</button>
+          </div>
+        </div>
       </div>
 
       <div id="page-custos" class="page">
@@ -594,6 +626,947 @@ function goPage(id, el) {
   if(id==='custos'     && !window.cCu)  initCustosCharts();
   if(id==='usuarios') refreshUsers();
   if(id==='colaboradores') carregarColaboradores();
+}
+
+// ---- CLOSERS / VENDAS ----
+var todasVendas = [];
+
+async function carregarVendas() {
+  const data = await supaFetch('vendas?order=data_venda.desc');
+  if(!data) return;
+  todasVendas = data;
+  renderVendas(todasVendas);
+  renderRanking(todasVendas);
+  renderTotais(todasVendas);
+}
+
+function renderTotais(vendas) {
+  var totalVendido = vendas.reduce(function(a,v){ return a + Number(v.valor||0); }, 0);
+  var totalComissao = vendas.reduce(function(a,v){ return a + (Number(v.valor||0) * Number(v.comissao_pct||0) / 100); }, 0);
+  document.getElementById('total-vendido').textContent = 'R$ ' + totalVendido.toLocaleString('pt-BR');
+  document.getElementById('total-comissao').textContent = 'R$ ' + totalComissao.toLocaleString('pt-BR');
+  document.getElementById('total-vendas-sub').textContent = vendas.length + ' vendas registradas';
+}
+
+function renderRanking(vendas) {
+  var ranking = {};
+  vendas.forEach(function(v){
+    if(!ranking[v.closer]) ranking[v.closer] = {vendas:0, valor:0, comissao:0};
+    ranking[v.closer].vendas++;
+    ranking[v.closer].valor += Number(v.valor||0);
+    ranking[v.closer].comissao += Number(v.valor||0) * Number(v.comissao_pct||0) / 100;
+  });
+  var lista = Object.keys(ranking).map(function(k){ return {nome:k, ...ranking[k]}; });
+  lista.sort(function(a,b){ return b.valor - a.valor; });
+  var medalhas = ['🥇','🥈','🥉'];
+  var maxValor = lista[0] ? lista[0].valor : 1;
+  var rl = document.getElementById('rank-list');
+  if(!lista.length){ rl.innerHTML='<div style="color:var(--muted);font-size:13px">Nenhuma venda registrada.</div>'; return; }
+  rl.innerHTML = lista.map(function(c, i){
+    var ini = c.nome.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+    var pct = Math.round((c.valor/maxValor)*100);
+    return '<div class="rank-item">'+
+      '<div style="width:18px">'+(medalhas[i]||'#'+(i+1))+'</div>'+
+      '<div class="rank-av" style="background:'+avColors[i%avColors.length]+'">'+ini+'</div>'+
+      '<div class="rank-info">'+
+        '<div class="rank-name">'+c.nome+'</div>'+
+        '<div class="rank-val">R
+var todosColabs = [];
+var filtroStatus = '';
+var avColors = ['linear-gradient(135deg,#1d6ff5,#38bdf8)','linear-gradient(135deg,#7c3aed,#a78bfa)','linear-gradient(135deg,#059669,#34d399)','linear-gradient(135deg,#d97706,#fbbf24)','linear-gradient(135deg,#e11d48,#f87171)','linear-gradient(135deg,#0284c7,#38bdf8)'];
+
+async function carregarColaboradores() {
+  const data = await supaFetch('colaboradores?order=criado_em.desc');
+  if(!data) return;
+  todosColabs = data;
+  renderColaboradores(todosColabs);
+}
+
+function filtrarColaboradores() {
+  const busca = document.getElementById('busca-colab').value.toLowerCase();
+  const filtrado = todosColabs.filter(function(c){
+    const matchBusca = c.nome.toLowerCase().includes(busca) || (c.cargo||'').toLowerCase().includes(busca);
+    const matchStatus = !filtroStatus || c.status === filtroStatus;
+    return matchBusca && matchStatus;
+  });
+  renderColaboradores(filtrado);
+}
+
+function setFiltroAtivo(el) {
+  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+function calcMeses(dataEntrada) {
+  if(!dataEntrada) return '—';
+  const diff = new Date() - new Date(dataEntrada);
+  const meses = Math.floor(diff / (1000*60*60*24*30));
+  return meses + ' meses';
+}
+
+function renderColaboradores(lista) {
+  const grid = document.getElementById('collab-grid');
+  if(!lista.length){ grid.innerHTML='<div style="color:var(--muted);padding:20px 0">Nenhum colaborador encontrado.</div>'; return; }
+  grid.innerHTML = lista.map(function(c, i){
+    const ini = c.nome.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+    const cor = avColors[i % avColors.length];
+    const sal = c.salario ? 'R$ '+Number(c.salario).toLocaleString('pt-BR') : '—';
+    return '<div class="collab-card">'+
+      '<div class="collab-top">'+
+        '<div class="collab-av" style="background:'+cor+'">'+ini+'</div>'+
+        '<div><div class="collab-name">'+c.nome+'</div><div class="collab-role">'+(c.cargo||'—')+'</div></div>'+
+        '<div style="margin-left:auto"><span class="badge '+(c.status==='ativo'?'green':'red')+'">'+c.status+'</span></div>'+
+      '</div>'+
+      '<div class="collab-row"><span>Salário</span><span>'+sal+'</span></div>'+
+      '<div class="collab-row"><span>Tempo</span><span>'+calcMeses(c.data_entrada)+'</span></div>'+
+      '<div style="display:flex;gap:6px;margin-top:10px">'+
+        '<button class="btn ghost" style="flex:1;font-size:11px;padding:5px" onclick="editarColaborador(\''+c.id+'\')"><i class="ti ti-edit"></i> Editar</button>'+
+        '<button class="btn" style="background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:#f87171;flex:1;font-size:11px;padding:5px" onclick="excluirColaborador(\''+c.id+'\')"><i class="ti ti-trash"></i> Excluir</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function abrirModalColaborador() {
+  document.getElementById('colab-id').value = '';
+  document.getElementById('colab-nome').value = '';
+  document.getElementById('colab-cargo').value = '';
+  document.getElementById('colab-salario').value = '';
+  document.getElementById('colab-data').value = '';
+  document.getElementById('colab-status').value = 'ativo';
+  document.getElementById('colab-tel').value = '';
+  document.getElementById('colab-email').value = '';
+  document.getElementById('colab-obs').value = '';
+  document.getElementById('colab-err').style.display = 'none';
+  document.getElementById('modal-colab-title').textContent = 'Novo Colaborador';
+  document.getElementById('modal-colab').style.display = 'flex';
+}
+
+function fecharModalColaborador() {
+  document.getElementById('modal-colab').style.display = 'none';
+}
+
+function editarColaborador(id) {
+  const c = todosColabs.find(function(x){ return x.id===id; });
+  if(!c) return;
+  document.getElementById('colab-id').value = c.id;
+  document.getElementById('colab-nome').value = c.nome||'';
+  document.getElementById('colab-cargo').value = c.cargo||'';
+  document.getElementById('colab-salario').value = c.salario||'';
+  document.getElementById('colab-data').value = c.data_entrada||'';
+  document.getElementById('colab-status').value = c.status||'ativo';
+  document.getElementById('colab-tel').value = c.telefone||'';
+  document.getElementById('colab-email').value = c.email||'';
+  document.getElementById('colab-obs').value = c.observacoes||'';
+  document.getElementById('modal-colab-title').textContent = 'Editar Colaborador';
+  document.getElementById('modal-colab').style.display = 'flex';
+}
+
+async function salvarColaborador() {
+  const id = document.getElementById('colab-id').value;
+  const nome = document.getElementById('colab-nome').value.trim();
+  const err = document.getElementById('colab-err');
+  if(!nome){ err.textContent='Nome é obrigatório.'; err.style.display='block'; return; }
+  const payload = {
+    nome: nome,
+    cargo: document.getElementById('colab-cargo').value,
+    salario: document.getElementById('colab-salario').value||null,
+    data_entrada: document.getElementById('colab-data').value||null,
+    status: document.getElementById('colab-status').value,
+    telefone: document.getElementById('colab-tel').value,
+    email: document.getElementById('colab-email').value,
+    observacoes: document.getElementById('colab-obs').value
+  };
+  var result;
+  if(id){ result = await supaFetch('colaboradores?id=eq.'+id, 'PATCH', payload); }
+  else { result = await supaFetch('colaboradores', 'POST', payload); }
+  if(result){ fecharModalColaborador(); carregarColaboradores(); }
+  else { err.textContent='Erro ao salvar. Tente novamente.'; err.style.display='block'; }
+}
+
+async function excluirColaborador(id) {
+  if(!confirm('Tem certeza que deseja excluir este colaborador?')) return;
+  await supaFetch('colaboradores?id=eq.'+id, 'DELETE');
+  carregarColaboradores();
+}
+
+// ---- USUARIOS ----
+var RC = {ADMIN:'blue',CLOSER:'amber',SDR:'red',DEV:'green',GESTOR:'purple',FINANCEIRO:'gray'};
+var AVC = ['linear-gradient(135deg,#1d6ff5,#38bdf8)','linear-gradient(135deg,#7c3aed,#a78bfa)','linear-gradient(135deg,#059669,#34d399)','linear-gradient(135deg,#d97706,#fbbf24)','linear-gradient(135deg,#e11d48,#f87171)'];
+
+function refreshUsers() {
+  var active  = USERS.filter(function(u){ return u.status==='active'; });
+  var pending = USERS.filter(function(u){ return u.status==='pending'; });
+  var denied  = USERS.filter(function(u){ return u.status==='denied'; });
+  document.getElementById('stat-a').textContent = active.length;
+  document.getElementById('stat-p').textContent = pending.length;
+  document.getElementById('stat-d').textContent = denied.length;
+  document.getElementById('notif-dot').style.display = pending.length>0 ? 'block' : 'none';
+
+  var pl = document.getElementById('pending-list');
+  if(!pending.length){
+    pl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Nenhuma solicitação pendente.</div>';
+  } else {
+    pl.innerHTML = pending.map(function(u,i){
+      var ini = u.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+      return '<div class="user-req-card">'+
+        '<div class="user-req-av" style="background:'+AVC[i%AVC.length]+'">'+ini+'</div>'+
+        '<div class="user-req-info"><div class="user-req-name">'+u.name+'</div>'+
+        '<div class="user-req-detail">'+u.email+' · <strong style="color:var(--text)">'+u.role+'</strong></div></div>'+
+        '<div class="user-req-actions">'+
+        '<button class="approve-btn" onclick="approveUser(\''+u.email+'\')"><i class="ti ti-check"></i> Aprovar</button>'+
+        '<button class="deny-btn" onclick="denyUser(\''+u.email+'\')"><i class="ti ti-x"></i> Negar</button>'+
+        '</div></div>';
+    }).join('');
+  }
+
+  var tb = document.getElementById('users-table');
+  tb.innerHTML = active.map(function(u){
+    return '<tr><td>'+u.name+'</td><td>'+u.email+'</td>'+
+      '<td><span class="badge '+(RC[u.role]||'gray')+'">'+u.role+'</span></td>'+
+      '<td><span class="badge green">Ativo</span></td></tr>';
+  }).join('');
+}
+
+function approveUser(email) {
+  USERS.forEach(function(u){ if(u.email===email) u.status='active'; });
+  refreshUsers();
+}
+function denyUser(email) {
+  USERS.forEach(function(u){ if(u.email===email) u.status='denied'; });
+  refreshUsers();
+}
+
+// ---- CHARTS ----
+var gc='rgba(255,255,255,.05)', blue='#1d6ff5', neon='#38bdf8', green='#34d399', amber='#fbbf24', red='#f87171', mu='rgba(255,255,255,.32)';
+var bO={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11}}}}};
+
+function initCharts() {
+  if(window.cDash) return; window.cDash=true;
+  new Chart(document.getElementById('cGastos'),{type:'bar',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Salários',data:[76000,78000,80000,81000,84200],backgroundColor:'rgba(29,111,245,.55)',borderRadius:3},{label:'Comissão',data:[14000,16000,17000,18200,21480],backgroundColor:'rgba(56,189,248,.45)',borderRadius:3},{label:'Custos',data:[11200,12000,11800,12100,17210],backgroundColor:'rgba(251,191,36,.4)',borderRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:10,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+  new Chart(document.getElementById('cDist'),{type:'doughnut',data:{labels:['Salários','Comissão','Softwares','Infra','Outros'],datasets:[{data:[84200,21480,6400,1000,6810],backgroundColor:[blue,neon,'rgba(167,139,250,.8)',green,amber],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{color:mu,boxWidth:9,font:{size:11},padding:7}}}}});
+}
+function initCloserCharts() {
+  window.cCl=true;
+  new Chart(document.getElementById('cClosers'),{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Lucas',data:[38000,42000,48000,50000,54000],borderColor:neon,backgroundColor:'rgba(56,189,248,.07)',tension:.4,fill:true,borderWidth:2,pointRadius:3},{label:'Fernando',data:[20000,24000,30000,34000,38400],borderColor:amber,backgroundColor:'rgba(251,191,36,.04)',tension:.4,fill:true,borderWidth:2,pointRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:9,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+}
+function initCustosCharts() {
+  window.cCu=true;
+  new Chart(document.getElementById('cCustos'),{type:'bar',data:{labels:['Software','Infra','Utilidades','Escritório','Outros'],datasets:[{data:[7980,1380,620,355,2875],backgroundColor:[blue,'rgba(52,211,153,.6)',amber,'rgba(167,139,250,.7)','rgba(248,113,113,.6)'],borderRadius:3}]},options:Object.assign({},bO,{indexAxis:'y',scales:{y:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},x:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+v}}}}})});
+  new Chart(document.getElementById('cCustosEv'),{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{data:[11200,12000,11800,12100,17210],borderColor:red,backgroundColor:'rgba(248,113,113,.07)',tension:.4,fill:true,borderWidth:2,pointRadius:3}]},options:Object.assign({},bO,{scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+}
+function initRelCharts() {
+  window.cRel=true;
+  new Chart(document.getElementById('cCresc'),{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Clientes',data:[12,13,15,16,18],borderColor:green,backgroundColor:'rgba(52,211,153,.07)',tension:.4,fill:true,borderWidth:2,pointRadius:3,yAxisID:'y'},{label:'MRR(k)',data:[72,80,92,104,114],borderColor:neon,backgroundColor:'rgba(56,189,248,.05)',tension:.4,fill:true,borderWidth:2,pointRadius:3,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:mu,boxWidth:9,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11}},position:'left'},y2:{grid:{display:false},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+v+'k'}},position:'right'}}}});
+  new Chart(document.getElementById('cMRR'),{type:'bar',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'MRR',data:[72000,80000,92000,104000,114200],backgroundColor:'rgba(29,111,245,.55)',borderRadius:3},{label:'Despesas',data:[101200,106000,108800,111300,122890],backgroundColor:'rgba(248,113,113,.45)',borderRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:9,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+}
+
+function buildCal() {
+  var grid=document.getElementById('calGrid'); if(!grid)return;
+  var sales=[8,9,10,12,14,19,22,23];
+  for(var i=0;i<4;i++) grid.appendChild(document.createElement('div'));
+  for(var d=1;d<=31;d++){
+    var c=document.createElement('div'); c.className='cal-cell';
+    if(sales.indexOf(d)>=0) c.classList.add('has-sale');
+    if(d===20) c.classList.add('today');
+    c.innerHTML=d+(sales.indexOf(d)>=0?'<div class="dot"></div>':'');
+    grid.appendChild(c);
+  }
+}
+
+// ---- INIT ----
+showScreen('screen-login');
+</script>
+</body>
+</html>
++c.valor.toLocaleString('pt-BR')+' · '+c.vendas+' venda(s)</div>'+
+        '<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>'+
+      '</div>'+
+      '<div class="rank-badge">R
+var todosColabs = [];
+var filtroStatus = '';
+var avColors = ['linear-gradient(135deg,#1d6ff5,#38bdf8)','linear-gradient(135deg,#7c3aed,#a78bfa)','linear-gradient(135deg,#059669,#34d399)','linear-gradient(135deg,#d97706,#fbbf24)','linear-gradient(135deg,#e11d48,#f87171)','linear-gradient(135deg,#0284c7,#38bdf8)'];
+
+async function carregarColaboradores() {
+  const data = await supaFetch('colaboradores?order=criado_em.desc');
+  if(!data) return;
+  todosColabs = data;
+  renderColaboradores(todosColabs);
+}
+
+function filtrarColaboradores() {
+  const busca = document.getElementById('busca-colab').value.toLowerCase();
+  const filtrado = todosColabs.filter(function(c){
+    const matchBusca = c.nome.toLowerCase().includes(busca) || (c.cargo||'').toLowerCase().includes(busca);
+    const matchStatus = !filtroStatus || c.status === filtroStatus;
+    return matchBusca && matchStatus;
+  });
+  renderColaboradores(filtrado);
+}
+
+function setFiltroAtivo(el) {
+  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+function calcMeses(dataEntrada) {
+  if(!dataEntrada) return '—';
+  const diff = new Date() - new Date(dataEntrada);
+  const meses = Math.floor(diff / (1000*60*60*24*30));
+  return meses + ' meses';
+}
+
+function renderColaboradores(lista) {
+  const grid = document.getElementById('collab-grid');
+  if(!lista.length){ grid.innerHTML='<div style="color:var(--muted);padding:20px 0">Nenhum colaborador encontrado.</div>'; return; }
+  grid.innerHTML = lista.map(function(c, i){
+    const ini = c.nome.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+    const cor = avColors[i % avColors.length];
+    const sal = c.salario ? 'R$ '+Number(c.salario).toLocaleString('pt-BR') : '—';
+    return '<div class="collab-card">'+
+      '<div class="collab-top">'+
+        '<div class="collab-av" style="background:'+cor+'">'+ini+'</div>'+
+        '<div><div class="collab-name">'+c.nome+'</div><div class="collab-role">'+(c.cargo||'—')+'</div></div>'+
+        '<div style="margin-left:auto"><span class="badge '+(c.status==='ativo'?'green':'red')+'">'+c.status+'</span></div>'+
+      '</div>'+
+      '<div class="collab-row"><span>Salário</span><span>'+sal+'</span></div>'+
+      '<div class="collab-row"><span>Tempo</span><span>'+calcMeses(c.data_entrada)+'</span></div>'+
+      '<div style="display:flex;gap:6px;margin-top:10px">'+
+        '<button class="btn ghost" style="flex:1;font-size:11px;padding:5px" onclick="editarColaborador(\''+c.id+'\')"><i class="ti ti-edit"></i> Editar</button>'+
+        '<button class="btn" style="background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:#f87171;flex:1;font-size:11px;padding:5px" onclick="excluirColaborador(\''+c.id+'\')"><i class="ti ti-trash"></i> Excluir</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function abrirModalColaborador() {
+  document.getElementById('colab-id').value = '';
+  document.getElementById('colab-nome').value = '';
+  document.getElementById('colab-cargo').value = '';
+  document.getElementById('colab-salario').value = '';
+  document.getElementById('colab-data').value = '';
+  document.getElementById('colab-status').value = 'ativo';
+  document.getElementById('colab-tel').value = '';
+  document.getElementById('colab-email').value = '';
+  document.getElementById('colab-obs').value = '';
+  document.getElementById('colab-err').style.display = 'none';
+  document.getElementById('modal-colab-title').textContent = 'Novo Colaborador';
+  document.getElementById('modal-colab').style.display = 'flex';
+}
+
+function fecharModalColaborador() {
+  document.getElementById('modal-colab').style.display = 'none';
+}
+
+function editarColaborador(id) {
+  const c = todosColabs.find(function(x){ return x.id===id; });
+  if(!c) return;
+  document.getElementById('colab-id').value = c.id;
+  document.getElementById('colab-nome').value = c.nome||'';
+  document.getElementById('colab-cargo').value = c.cargo||'';
+  document.getElementById('colab-salario').value = c.salario||'';
+  document.getElementById('colab-data').value = c.data_entrada||'';
+  document.getElementById('colab-status').value = c.status||'ativo';
+  document.getElementById('colab-tel').value = c.telefone||'';
+  document.getElementById('colab-email').value = c.email||'';
+  document.getElementById('colab-obs').value = c.observacoes||'';
+  document.getElementById('modal-colab-title').textContent = 'Editar Colaborador';
+  document.getElementById('modal-colab').style.display = 'flex';
+}
+
+async function salvarColaborador() {
+  const id = document.getElementById('colab-id').value;
+  const nome = document.getElementById('colab-nome').value.trim();
+  const err = document.getElementById('colab-err');
+  if(!nome){ err.textContent='Nome é obrigatório.'; err.style.display='block'; return; }
+  const payload = {
+    nome: nome,
+    cargo: document.getElementById('colab-cargo').value,
+    salario: document.getElementById('colab-salario').value||null,
+    data_entrada: document.getElementById('colab-data').value||null,
+    status: document.getElementById('colab-status').value,
+    telefone: document.getElementById('colab-tel').value,
+    email: document.getElementById('colab-email').value,
+    observacoes: document.getElementById('colab-obs').value
+  };
+  var result;
+  if(id){ result = await supaFetch('colaboradores?id=eq.'+id, 'PATCH', payload); }
+  else { result = await supaFetch('colaboradores', 'POST', payload); }
+  if(result){ fecharModalColaborador(); carregarColaboradores(); }
+  else { err.textContent='Erro ao salvar. Tente novamente.'; err.style.display='block'; }
+}
+
+async function excluirColaborador(id) {
+  if(!confirm('Tem certeza que deseja excluir este colaborador?')) return;
+  await supaFetch('colaboradores?id=eq.'+id, 'DELETE');
+  carregarColaboradores();
+}
+
+// ---- USUARIOS ----
+var RC = {ADMIN:'blue',CLOSER:'amber',SDR:'red',DEV:'green',GESTOR:'purple',FINANCEIRO:'gray'};
+var AVC = ['linear-gradient(135deg,#1d6ff5,#38bdf8)','linear-gradient(135deg,#7c3aed,#a78bfa)','linear-gradient(135deg,#059669,#34d399)','linear-gradient(135deg,#d97706,#fbbf24)','linear-gradient(135deg,#e11d48,#f87171)'];
+
+function refreshUsers() {
+  var active  = USERS.filter(function(u){ return u.status==='active'; });
+  var pending = USERS.filter(function(u){ return u.status==='pending'; });
+  var denied  = USERS.filter(function(u){ return u.status==='denied'; });
+  document.getElementById('stat-a').textContent = active.length;
+  document.getElementById('stat-p').textContent = pending.length;
+  document.getElementById('stat-d').textContent = denied.length;
+  document.getElementById('notif-dot').style.display = pending.length>0 ? 'block' : 'none';
+
+  var pl = document.getElementById('pending-list');
+  if(!pending.length){
+    pl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Nenhuma solicitação pendente.</div>';
+  } else {
+    pl.innerHTML = pending.map(function(u,i){
+      var ini = u.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+      return '<div class="user-req-card">'+
+        '<div class="user-req-av" style="background:'+AVC[i%AVC.length]+'">'+ini+'</div>'+
+        '<div class="user-req-info"><div class="user-req-name">'+u.name+'</div>'+
+        '<div class="user-req-detail">'+u.email+' · <strong style="color:var(--text)">'+u.role+'</strong></div></div>'+
+        '<div class="user-req-actions">'+
+        '<button class="approve-btn" onclick="approveUser(\''+u.email+'\')"><i class="ti ti-check"></i> Aprovar</button>'+
+        '<button class="deny-btn" onclick="denyUser(\''+u.email+'\')"><i class="ti ti-x"></i> Negar</button>'+
+        '</div></div>';
+    }).join('');
+  }
+
+  var tb = document.getElementById('users-table');
+  tb.innerHTML = active.map(function(u){
+    return '<tr><td>'+u.name+'</td><td>'+u.email+'</td>'+
+      '<td><span class="badge '+(RC[u.role]||'gray')+'">'+u.role+'</span></td>'+
+      '<td><span class="badge green">Ativo</span></td></tr>';
+  }).join('');
+}
+
+function approveUser(email) {
+  USERS.forEach(function(u){ if(u.email===email) u.status='active'; });
+  refreshUsers();
+}
+function denyUser(email) {
+  USERS.forEach(function(u){ if(u.email===email) u.status='denied'; });
+  refreshUsers();
+}
+
+// ---- CHARTS ----
+var gc='rgba(255,255,255,.05)', blue='#1d6ff5', neon='#38bdf8', green='#34d399', amber='#fbbf24', red='#f87171', mu='rgba(255,255,255,.32)';
+var bO={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11}}}}};
+
+function initCharts() {
+  if(window.cDash) return; window.cDash=true;
+  new Chart(document.getElementById('cGastos'),{type:'bar',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Salários',data:[76000,78000,80000,81000,84200],backgroundColor:'rgba(29,111,245,.55)',borderRadius:3},{label:'Comissão',data:[14000,16000,17000,18200,21480],backgroundColor:'rgba(56,189,248,.45)',borderRadius:3},{label:'Custos',data:[11200,12000,11800,12100,17210],backgroundColor:'rgba(251,191,36,.4)',borderRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:10,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+  new Chart(document.getElementById('cDist'),{type:'doughnut',data:{labels:['Salários','Comissão','Softwares','Infra','Outros'],datasets:[{data:[84200,21480,6400,1000,6810],backgroundColor:[blue,neon,'rgba(167,139,250,.8)',green,amber],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{color:mu,boxWidth:9,font:{size:11},padding:7}}}}});
+}
+function initCloserCharts() {
+  window.cCl=true;
+  new Chart(document.getElementById('cClosers'),{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Lucas',data:[38000,42000,48000,50000,54000],borderColor:neon,backgroundColor:'rgba(56,189,248,.07)',tension:.4,fill:true,borderWidth:2,pointRadius:3},{label:'Fernando',data:[20000,24000,30000,34000,38400],borderColor:amber,backgroundColor:'rgba(251,191,36,.04)',tension:.4,fill:true,borderWidth:2,pointRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:9,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+}
+function initCustosCharts() {
+  window.cCu=true;
+  new Chart(document.getElementById('cCustos'),{type:'bar',data:{labels:['Software','Infra','Utilidades','Escritório','Outros'],datasets:[{data:[7980,1380,620,355,2875],backgroundColor:[blue,'rgba(52,211,153,.6)',amber,'rgba(167,139,250,.7)','rgba(248,113,113,.6)'],borderRadius:3}]},options:Object.assign({},bO,{indexAxis:'y',scales:{y:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},x:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+v}}}}})});
+  new Chart(document.getElementById('cCustosEv'),{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{data:[11200,12000,11800,12100,17210],borderColor:red,backgroundColor:'rgba(248,113,113,.07)',tension:.4,fill:true,borderWidth:2,pointRadius:3}]},options:Object.assign({},bO,{scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+}
+function initRelCharts() {
+  window.cRel=true;
+  new Chart(document.getElementById('cCresc'),{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Clientes',data:[12,13,15,16,18],borderColor:green,backgroundColor:'rgba(52,211,153,.07)',tension:.4,fill:true,borderWidth:2,pointRadius:3,yAxisID:'y'},{label:'MRR(k)',data:[72,80,92,104,114],borderColor:neon,backgroundColor:'rgba(56,189,248,.05)',tension:.4,fill:true,borderWidth:2,pointRadius:3,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:mu,boxWidth:9,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11}},position:'left'},y2:{grid:{display:false},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+v+'k'}},position:'right'}}}});
+  new Chart(document.getElementById('cMRR'),{type:'bar',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'MRR',data:[72000,80000,92000,104000,114200],backgroundColor:'rgba(29,111,245,.55)',borderRadius:3},{label:'Despesas',data:[101200,106000,108800,111300,122890],backgroundColor:'rgba(248,113,113,.45)',borderRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:9,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+}
+
+function buildCal() {
+  var grid=document.getElementById('calGrid'); if(!grid)return;
+  var sales=[8,9,10,12,14,19,22,23];
+  for(var i=0;i<4;i++) grid.appendChild(document.createElement('div'));
+  for(var d=1;d<=31;d++){
+    var c=document.createElement('div'); c.className='cal-cell';
+    if(sales.indexOf(d)>=0) c.classList.add('has-sale');
+    if(d===20) c.classList.add('today');
+    c.innerHTML=d+(sales.indexOf(d)>=0?'<div class="dot"></div>':'');
+    grid.appendChild(c);
+  }
+}
+
+// ---- INIT ----
+showScreen('screen-login');
+</script>
+</body>
+</html>
++Math.round(c.comissao).toLocaleString('pt-BR')+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderVendas(vendas) {
+  var tb = document.getElementById('vendas-table');
+  if(!vendas.length){ tb.innerHTML='<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px">Nenhuma venda registrada.</td></tr>'; return; }
+  tb.innerHTML = vendas.map(function(v){
+    var comissao = Number(v.valor||0) * Number(v.comissao_pct||0) / 100;
+    var badgeClass = v.status==='pago'?'green':v.status==='cancelado'?'red':'amber';
+    var data = v.data_venda ? new Date(v.data_venda).toLocaleDateString('pt-BR') : '—';
+    return '<tr>'+
+      '<td>'+data+'</td>'+
+      '<td>'+v.closer+'</td>'+
+      '<td>'+v.cliente+'</td>'+
+      '<td>R
+var todosColabs = [];
+var filtroStatus = '';
+var avColors = ['linear-gradient(135deg,#1d6ff5,#38bdf8)','linear-gradient(135deg,#7c3aed,#a78bfa)','linear-gradient(135deg,#059669,#34d399)','linear-gradient(135deg,#d97706,#fbbf24)','linear-gradient(135deg,#e11d48,#f87171)','linear-gradient(135deg,#0284c7,#38bdf8)'];
+
+async function carregarColaboradores() {
+  const data = await supaFetch('colaboradores?order=criado_em.desc');
+  if(!data) return;
+  todosColabs = data;
+  renderColaboradores(todosColabs);
+}
+
+function filtrarColaboradores() {
+  const busca = document.getElementById('busca-colab').value.toLowerCase();
+  const filtrado = todosColabs.filter(function(c){
+    const matchBusca = c.nome.toLowerCase().includes(busca) || (c.cargo||'').toLowerCase().includes(busca);
+    const matchStatus = !filtroStatus || c.status === filtroStatus;
+    return matchBusca && matchStatus;
+  });
+  renderColaboradores(filtrado);
+}
+
+function setFiltroAtivo(el) {
+  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+function calcMeses(dataEntrada) {
+  if(!dataEntrada) return '—';
+  const diff = new Date() - new Date(dataEntrada);
+  const meses = Math.floor(diff / (1000*60*60*24*30));
+  return meses + ' meses';
+}
+
+function renderColaboradores(lista) {
+  const grid = document.getElementById('collab-grid');
+  if(!lista.length){ grid.innerHTML='<div style="color:var(--muted);padding:20px 0">Nenhum colaborador encontrado.</div>'; return; }
+  grid.innerHTML = lista.map(function(c, i){
+    const ini = c.nome.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+    const cor = avColors[i % avColors.length];
+    const sal = c.salario ? 'R$ '+Number(c.salario).toLocaleString('pt-BR') : '—';
+    return '<div class="collab-card">'+
+      '<div class="collab-top">'+
+        '<div class="collab-av" style="background:'+cor+'">'+ini+'</div>'+
+        '<div><div class="collab-name">'+c.nome+'</div><div class="collab-role">'+(c.cargo||'—')+'</div></div>'+
+        '<div style="margin-left:auto"><span class="badge '+(c.status==='ativo'?'green':'red')+'">'+c.status+'</span></div>'+
+      '</div>'+
+      '<div class="collab-row"><span>Salário</span><span>'+sal+'</span></div>'+
+      '<div class="collab-row"><span>Tempo</span><span>'+calcMeses(c.data_entrada)+'</span></div>'+
+      '<div style="display:flex;gap:6px;margin-top:10px">'+
+        '<button class="btn ghost" style="flex:1;font-size:11px;padding:5px" onclick="editarColaborador(\''+c.id+'\')"><i class="ti ti-edit"></i> Editar</button>'+
+        '<button class="btn" style="background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:#f87171;flex:1;font-size:11px;padding:5px" onclick="excluirColaborador(\''+c.id+'\')"><i class="ti ti-trash"></i> Excluir</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function abrirModalColaborador() {
+  document.getElementById('colab-id').value = '';
+  document.getElementById('colab-nome').value = '';
+  document.getElementById('colab-cargo').value = '';
+  document.getElementById('colab-salario').value = '';
+  document.getElementById('colab-data').value = '';
+  document.getElementById('colab-status').value = 'ativo';
+  document.getElementById('colab-tel').value = '';
+  document.getElementById('colab-email').value = '';
+  document.getElementById('colab-obs').value = '';
+  document.getElementById('colab-err').style.display = 'none';
+  document.getElementById('modal-colab-title').textContent = 'Novo Colaborador';
+  document.getElementById('modal-colab').style.display = 'flex';
+}
+
+function fecharModalColaborador() {
+  document.getElementById('modal-colab').style.display = 'none';
+}
+
+function editarColaborador(id) {
+  const c = todosColabs.find(function(x){ return x.id===id; });
+  if(!c) return;
+  document.getElementById('colab-id').value = c.id;
+  document.getElementById('colab-nome').value = c.nome||'';
+  document.getElementById('colab-cargo').value = c.cargo||'';
+  document.getElementById('colab-salario').value = c.salario||'';
+  document.getElementById('colab-data').value = c.data_entrada||'';
+  document.getElementById('colab-status').value = c.status||'ativo';
+  document.getElementById('colab-tel').value = c.telefone||'';
+  document.getElementById('colab-email').value = c.email||'';
+  document.getElementById('colab-obs').value = c.observacoes||'';
+  document.getElementById('modal-colab-title').textContent = 'Editar Colaborador';
+  document.getElementById('modal-colab').style.display = 'flex';
+}
+
+async function salvarColaborador() {
+  const id = document.getElementById('colab-id').value;
+  const nome = document.getElementById('colab-nome').value.trim();
+  const err = document.getElementById('colab-err');
+  if(!nome){ err.textContent='Nome é obrigatório.'; err.style.display='block'; return; }
+  const payload = {
+    nome: nome,
+    cargo: document.getElementById('colab-cargo').value,
+    salario: document.getElementById('colab-salario').value||null,
+    data_entrada: document.getElementById('colab-data').value||null,
+    status: document.getElementById('colab-status').value,
+    telefone: document.getElementById('colab-tel').value,
+    email: document.getElementById('colab-email').value,
+    observacoes: document.getElementById('colab-obs').value
+  };
+  var result;
+  if(id){ result = await supaFetch('colaboradores?id=eq.'+id, 'PATCH', payload); }
+  else { result = await supaFetch('colaboradores', 'POST', payload); }
+  if(result){ fecharModalColaborador(); carregarColaboradores(); }
+  else { err.textContent='Erro ao salvar. Tente novamente.'; err.style.display='block'; }
+}
+
+async function excluirColaborador(id) {
+  if(!confirm('Tem certeza que deseja excluir este colaborador?')) return;
+  await supaFetch('colaboradores?id=eq.'+id, 'DELETE');
+  carregarColaboradores();
+}
+
+// ---- USUARIOS ----
+var RC = {ADMIN:'blue',CLOSER:'amber',SDR:'red',DEV:'green',GESTOR:'purple',FINANCEIRO:'gray'};
+var AVC = ['linear-gradient(135deg,#1d6ff5,#38bdf8)','linear-gradient(135deg,#7c3aed,#a78bfa)','linear-gradient(135deg,#059669,#34d399)','linear-gradient(135deg,#d97706,#fbbf24)','linear-gradient(135deg,#e11d48,#f87171)'];
+
+function refreshUsers() {
+  var active  = USERS.filter(function(u){ return u.status==='active'; });
+  var pending = USERS.filter(function(u){ return u.status==='pending'; });
+  var denied  = USERS.filter(function(u){ return u.status==='denied'; });
+  document.getElementById('stat-a').textContent = active.length;
+  document.getElementById('stat-p').textContent = pending.length;
+  document.getElementById('stat-d').textContent = denied.length;
+  document.getElementById('notif-dot').style.display = pending.length>0 ? 'block' : 'none';
+
+  var pl = document.getElementById('pending-list');
+  if(!pending.length){
+    pl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Nenhuma solicitação pendente.</div>';
+  } else {
+    pl.innerHTML = pending.map(function(u,i){
+      var ini = u.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+      return '<div class="user-req-card">'+
+        '<div class="user-req-av" style="background:'+AVC[i%AVC.length]+'">'+ini+'</div>'+
+        '<div class="user-req-info"><div class="user-req-name">'+u.name+'</div>'+
+        '<div class="user-req-detail">'+u.email+' · <strong style="color:var(--text)">'+u.role+'</strong></div></div>'+
+        '<div class="user-req-actions">'+
+        '<button class="approve-btn" onclick="approveUser(\''+u.email+'\')"><i class="ti ti-check"></i> Aprovar</button>'+
+        '<button class="deny-btn" onclick="denyUser(\''+u.email+'\')"><i class="ti ti-x"></i> Negar</button>'+
+        '</div></div>';
+    }).join('');
+  }
+
+  var tb = document.getElementById('users-table');
+  tb.innerHTML = active.map(function(u){
+    return '<tr><td>'+u.name+'</td><td>'+u.email+'</td>'+
+      '<td><span class="badge '+(RC[u.role]||'gray')+'">'+u.role+'</span></td>'+
+      '<td><span class="badge green">Ativo</span></td></tr>';
+  }).join('');
+}
+
+function approveUser(email) {
+  USERS.forEach(function(u){ if(u.email===email) u.status='active'; });
+  refreshUsers();
+}
+function denyUser(email) {
+  USERS.forEach(function(u){ if(u.email===email) u.status='denied'; });
+  refreshUsers();
+}
+
+// ---- CHARTS ----
+var gc='rgba(255,255,255,.05)', blue='#1d6ff5', neon='#38bdf8', green='#34d399', amber='#fbbf24', red='#f87171', mu='rgba(255,255,255,.32)';
+var bO={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11}}}}};
+
+function initCharts() {
+  if(window.cDash) return; window.cDash=true;
+  new Chart(document.getElementById('cGastos'),{type:'bar',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Salários',data:[76000,78000,80000,81000,84200],backgroundColor:'rgba(29,111,245,.55)',borderRadius:3},{label:'Comissão',data:[14000,16000,17000,18200,21480],backgroundColor:'rgba(56,189,248,.45)',borderRadius:3},{label:'Custos',data:[11200,12000,11800,12100,17210],backgroundColor:'rgba(251,191,36,.4)',borderRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:10,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+  new Chart(document.getElementById('cDist'),{type:'doughnut',data:{labels:['Salários','Comissão','Softwares','Infra','Outros'],datasets:[{data:[84200,21480,6400,1000,6810],backgroundColor:[blue,neon,'rgba(167,139,250,.8)',green,amber],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{color:mu,boxWidth:9,font:{size:11},padding:7}}}}});
+}
+function initCloserCharts() {
+  window.cCl=true;
+  new Chart(document.getElementById('cClosers'),{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Lucas',data:[38000,42000,48000,50000,54000],borderColor:neon,backgroundColor:'rgba(56,189,248,.07)',tension:.4,fill:true,borderWidth:2,pointRadius:3},{label:'Fernando',data:[20000,24000,30000,34000,38400],borderColor:amber,backgroundColor:'rgba(251,191,36,.04)',tension:.4,fill:true,borderWidth:2,pointRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:9,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+}
+function initCustosCharts() {
+  window.cCu=true;
+  new Chart(document.getElementById('cCustos'),{type:'bar',data:{labels:['Software','Infra','Utilidades','Escritório','Outros'],datasets:[{data:[7980,1380,620,355,2875],backgroundColor:[blue,'rgba(52,211,153,.6)',amber,'rgba(167,139,250,.7)','rgba(248,113,113,.6)'],borderRadius:3}]},options:Object.assign({},bO,{indexAxis:'y',scales:{y:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},x:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+v}}}}})});
+  new Chart(document.getElementById('cCustosEv'),{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{data:[11200,12000,11800,12100,17210],borderColor:red,backgroundColor:'rgba(248,113,113,.07)',tension:.4,fill:true,borderWidth:2,pointRadius:3}]},options:Object.assign({},bO,{scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+}
+function initRelCharts() {
+  window.cRel=true;
+  new Chart(document.getElementById('cCresc'),{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Clientes',data:[12,13,15,16,18],borderColor:green,backgroundColor:'rgba(52,211,153,.07)',tension:.4,fill:true,borderWidth:2,pointRadius:3,yAxisID:'y'},{label:'MRR(k)',data:[72,80,92,104,114],borderColor:neon,backgroundColor:'rgba(56,189,248,.05)',tension:.4,fill:true,borderWidth:2,pointRadius:3,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:mu,boxWidth:9,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11}},position:'left'},y2:{grid:{display:false},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+v+'k'}},position:'right'}}}});
+  new Chart(document.getElementById('cMRR'),{type:'bar',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'MRR',data:[72000,80000,92000,104000,114200],backgroundColor:'rgba(29,111,245,.55)',borderRadius:3},{label:'Despesas',data:[101200,106000,108800,111300,122890],backgroundColor:'rgba(248,113,113,.45)',borderRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:9,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+}
+
+function buildCal() {
+  var grid=document.getElementById('calGrid'); if(!grid)return;
+  var sales=[8,9,10,12,14,19,22,23];
+  for(var i=0;i<4;i++) grid.appendChild(document.createElement('div'));
+  for(var d=1;d<=31;d++){
+    var c=document.createElement('div'); c.className='cal-cell';
+    if(sales.indexOf(d)>=0) c.classList.add('has-sale');
+    if(d===20) c.classList.add('today');
+    c.innerHTML=d+(sales.indexOf(d)>=0?'<div class="dot"></div>':'');
+    grid.appendChild(c);
+  }
+}
+
+// ---- INIT ----
+showScreen('screen-login');
+</script>
+</body>
+</html>
++Number(v.valor).toLocaleString('pt-BR')+'</td>'+
+      '<td>R
+var todosColabs = [];
+var filtroStatus = '';
+var avColors = ['linear-gradient(135deg,#1d6ff5,#38bdf8)','linear-gradient(135deg,#7c3aed,#a78bfa)','linear-gradient(135deg,#059669,#34d399)','linear-gradient(135deg,#d97706,#fbbf24)','linear-gradient(135deg,#e11d48,#f87171)','linear-gradient(135deg,#0284c7,#38bdf8)'];
+
+async function carregarColaboradores() {
+  const data = await supaFetch('colaboradores?order=criado_em.desc');
+  if(!data) return;
+  todosColabs = data;
+  renderColaboradores(todosColabs);
+}
+
+function filtrarColaboradores() {
+  const busca = document.getElementById('busca-colab').value.toLowerCase();
+  const filtrado = todosColabs.filter(function(c){
+    const matchBusca = c.nome.toLowerCase().includes(busca) || (c.cargo||'').toLowerCase().includes(busca);
+    const matchStatus = !filtroStatus || c.status === filtroStatus;
+    return matchBusca && matchStatus;
+  });
+  renderColaboradores(filtrado);
+}
+
+function setFiltroAtivo(el) {
+  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+function calcMeses(dataEntrada) {
+  if(!dataEntrada) return '—';
+  const diff = new Date() - new Date(dataEntrada);
+  const meses = Math.floor(diff / (1000*60*60*24*30));
+  return meses + ' meses';
+}
+
+function renderColaboradores(lista) {
+  const grid = document.getElementById('collab-grid');
+  if(!lista.length){ grid.innerHTML='<div style="color:var(--muted);padding:20px 0">Nenhum colaborador encontrado.</div>'; return; }
+  grid.innerHTML = lista.map(function(c, i){
+    const ini = c.nome.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+    const cor = avColors[i % avColors.length];
+    const sal = c.salario ? 'R$ '+Number(c.salario).toLocaleString('pt-BR') : '—';
+    return '<div class="collab-card">'+
+      '<div class="collab-top">'+
+        '<div class="collab-av" style="background:'+cor+'">'+ini+'</div>'+
+        '<div><div class="collab-name">'+c.nome+'</div><div class="collab-role">'+(c.cargo||'—')+'</div></div>'+
+        '<div style="margin-left:auto"><span class="badge '+(c.status==='ativo'?'green':'red')+'">'+c.status+'</span></div>'+
+      '</div>'+
+      '<div class="collab-row"><span>Salário</span><span>'+sal+'</span></div>'+
+      '<div class="collab-row"><span>Tempo</span><span>'+calcMeses(c.data_entrada)+'</span></div>'+
+      '<div style="display:flex;gap:6px;margin-top:10px">'+
+        '<button class="btn ghost" style="flex:1;font-size:11px;padding:5px" onclick="editarColaborador(\''+c.id+'\')"><i class="ti ti-edit"></i> Editar</button>'+
+        '<button class="btn" style="background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:#f87171;flex:1;font-size:11px;padding:5px" onclick="excluirColaborador(\''+c.id+'\')"><i class="ti ti-trash"></i> Excluir</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function abrirModalColaborador() {
+  document.getElementById('colab-id').value = '';
+  document.getElementById('colab-nome').value = '';
+  document.getElementById('colab-cargo').value = '';
+  document.getElementById('colab-salario').value = '';
+  document.getElementById('colab-data').value = '';
+  document.getElementById('colab-status').value = 'ativo';
+  document.getElementById('colab-tel').value = '';
+  document.getElementById('colab-email').value = '';
+  document.getElementById('colab-obs').value = '';
+  document.getElementById('colab-err').style.display = 'none';
+  document.getElementById('modal-colab-title').textContent = 'Novo Colaborador';
+  document.getElementById('modal-colab').style.display = 'flex';
+}
+
+function fecharModalColaborador() {
+  document.getElementById('modal-colab').style.display = 'none';
+}
+
+function editarColaborador(id) {
+  const c = todosColabs.find(function(x){ return x.id===id; });
+  if(!c) return;
+  document.getElementById('colab-id').value = c.id;
+  document.getElementById('colab-nome').value = c.nome||'';
+  document.getElementById('colab-cargo').value = c.cargo||'';
+  document.getElementById('colab-salario').value = c.salario||'';
+  document.getElementById('colab-data').value = c.data_entrada||'';
+  document.getElementById('colab-status').value = c.status||'ativo';
+  document.getElementById('colab-tel').value = c.telefone||'';
+  document.getElementById('colab-email').value = c.email||'';
+  document.getElementById('colab-obs').value = c.observacoes||'';
+  document.getElementById('modal-colab-title').textContent = 'Editar Colaborador';
+  document.getElementById('modal-colab').style.display = 'flex';
+}
+
+async function salvarColaborador() {
+  const id = document.getElementById('colab-id').value;
+  const nome = document.getElementById('colab-nome').value.trim();
+  const err = document.getElementById('colab-err');
+  if(!nome){ err.textContent='Nome é obrigatório.'; err.style.display='block'; return; }
+  const payload = {
+    nome: nome,
+    cargo: document.getElementById('colab-cargo').value,
+    salario: document.getElementById('colab-salario').value||null,
+    data_entrada: document.getElementById('colab-data').value||null,
+    status: document.getElementById('colab-status').value,
+    telefone: document.getElementById('colab-tel').value,
+    email: document.getElementById('colab-email').value,
+    observacoes: document.getElementById('colab-obs').value
+  };
+  var result;
+  if(id){ result = await supaFetch('colaboradores?id=eq.'+id, 'PATCH', payload); }
+  else { result = await supaFetch('colaboradores', 'POST', payload); }
+  if(result){ fecharModalColaborador(); carregarColaboradores(); }
+  else { err.textContent='Erro ao salvar. Tente novamente.'; err.style.display='block'; }
+}
+
+async function excluirColaborador(id) {
+  if(!confirm('Tem certeza que deseja excluir este colaborador?')) return;
+  await supaFetch('colaboradores?id=eq.'+id, 'DELETE');
+  carregarColaboradores();
+}
+
+// ---- USUARIOS ----
+var RC = {ADMIN:'blue',CLOSER:'amber',SDR:'red',DEV:'green',GESTOR:'purple',FINANCEIRO:'gray'};
+var AVC = ['linear-gradient(135deg,#1d6ff5,#38bdf8)','linear-gradient(135deg,#7c3aed,#a78bfa)','linear-gradient(135deg,#059669,#34d399)','linear-gradient(135deg,#d97706,#fbbf24)','linear-gradient(135deg,#e11d48,#f87171)'];
+
+function refreshUsers() {
+  var active  = USERS.filter(function(u){ return u.status==='active'; });
+  var pending = USERS.filter(function(u){ return u.status==='pending'; });
+  var denied  = USERS.filter(function(u){ return u.status==='denied'; });
+  document.getElementById('stat-a').textContent = active.length;
+  document.getElementById('stat-p').textContent = pending.length;
+  document.getElementById('stat-d').textContent = denied.length;
+  document.getElementById('notif-dot').style.display = pending.length>0 ? 'block' : 'none';
+
+  var pl = document.getElementById('pending-list');
+  if(!pending.length){
+    pl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Nenhuma solicitação pendente.</div>';
+  } else {
+    pl.innerHTML = pending.map(function(u,i){
+      var ini = u.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+      return '<div class="user-req-card">'+
+        '<div class="user-req-av" style="background:'+AVC[i%AVC.length]+'">'+ini+'</div>'+
+        '<div class="user-req-info"><div class="user-req-name">'+u.name+'</div>'+
+        '<div class="user-req-detail">'+u.email+' · <strong style="color:var(--text)">'+u.role+'</strong></div></div>'+
+        '<div class="user-req-actions">'+
+        '<button class="approve-btn" onclick="approveUser(\''+u.email+'\')"><i class="ti ti-check"></i> Aprovar</button>'+
+        '<button class="deny-btn" onclick="denyUser(\''+u.email+'\')"><i class="ti ti-x"></i> Negar</button>'+
+        '</div></div>';
+    }).join('');
+  }
+
+  var tb = document.getElementById('users-table');
+  tb.innerHTML = active.map(function(u){
+    return '<tr><td>'+u.name+'</td><td>'+u.email+'</td>'+
+      '<td><span class="badge '+(RC[u.role]||'gray')+'">'+u.role+'</span></td>'+
+      '<td><span class="badge green">Ativo</span></td></tr>';
+  }).join('');
+}
+
+function approveUser(email) {
+  USERS.forEach(function(u){ if(u.email===email) u.status='active'; });
+  refreshUsers();
+}
+function denyUser(email) {
+  USERS.forEach(function(u){ if(u.email===email) u.status='denied'; });
+  refreshUsers();
+}
+
+// ---- CHARTS ----
+var gc='rgba(255,255,255,.05)', blue='#1d6ff5', neon='#38bdf8', green='#34d399', amber='#fbbf24', red='#f87171', mu='rgba(255,255,255,.32)';
+var bO={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11}}}}};
+
+function initCharts() {
+  if(window.cDash) return; window.cDash=true;
+  new Chart(document.getElementById('cGastos'),{type:'bar',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Salários',data:[76000,78000,80000,81000,84200],backgroundColor:'rgba(29,111,245,.55)',borderRadius:3},{label:'Comissão',data:[14000,16000,17000,18200,21480],backgroundColor:'rgba(56,189,248,.45)',borderRadius:3},{label:'Custos',data:[11200,12000,11800,12100,17210],backgroundColor:'rgba(251,191,36,.4)',borderRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:10,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+  new Chart(document.getElementById('cDist'),{type:'doughnut',data:{labels:['Salários','Comissão','Softwares','Infra','Outros'],datasets:[{data:[84200,21480,6400,1000,6810],backgroundColor:[blue,neon,'rgba(167,139,250,.8)',green,amber],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{color:mu,boxWidth:9,font:{size:11},padding:7}}}}});
+}
+function initCloserCharts() {
+  window.cCl=true;
+  new Chart(document.getElementById('cClosers'),{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Lucas',data:[38000,42000,48000,50000,54000],borderColor:neon,backgroundColor:'rgba(56,189,248,.07)',tension:.4,fill:true,borderWidth:2,pointRadius:3},{label:'Fernando',data:[20000,24000,30000,34000,38400],borderColor:amber,backgroundColor:'rgba(251,191,36,.04)',tension:.4,fill:true,borderWidth:2,pointRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:9,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+}
+function initCustosCharts() {
+  window.cCu=true;
+  new Chart(document.getElementById('cCustos'),{type:'bar',data:{labels:['Software','Infra','Utilidades','Escritório','Outros'],datasets:[{data:[7980,1380,620,355,2875],backgroundColor:[blue,'rgba(52,211,153,.6)',amber,'rgba(167,139,250,.7)','rgba(248,113,113,.6)'],borderRadius:3}]},options:Object.assign({},bO,{indexAxis:'y',scales:{y:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},x:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+v}}}}})});
+  new Chart(document.getElementById('cCustosEv'),{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{data:[11200,12000,11800,12100,17210],borderColor:red,backgroundColor:'rgba(248,113,113,.07)',tension:.4,fill:true,borderWidth:2,pointRadius:3}]},options:Object.assign({},bO,{scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+}
+function initRelCharts() {
+  window.cRel=true;
+  new Chart(document.getElementById('cCresc'),{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Clientes',data:[12,13,15,16,18],borderColor:green,backgroundColor:'rgba(52,211,153,.07)',tension:.4,fill:true,borderWidth:2,pointRadius:3,yAxisID:'y'},{label:'MRR(k)',data:[72,80,92,104,114],borderColor:neon,backgroundColor:'rgba(56,189,248,.05)',tension:.4,fill:true,borderWidth:2,pointRadius:3,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:mu,boxWidth:9,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11}},position:'left'},y2:{grid:{display:false},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+v+'k'}},position:'right'}}}});
+  new Chart(document.getElementById('cMRR'),{type:'bar',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'MRR',data:[72000,80000,92000,104000,114200],backgroundColor:'rgba(29,111,245,.55)',borderRadius:3},{label:'Despesas',data:[101200,106000,108800,111300,122890],backgroundColor:'rgba(248,113,113,.45)',borderRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:9,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+}
+
+function buildCal() {
+  var grid=document.getElementById('calGrid'); if(!grid)return;
+  var sales=[8,9,10,12,14,19,22,23];
+  for(var i=0;i<4;i++) grid.appendChild(document.createElement('div'));
+  for(var d=1;d<=31;d++){
+    var c=document.createElement('div'); c.className='cal-cell';
+    if(sales.indexOf(d)>=0) c.classList.add('has-sale');
+    if(d===20) c.classList.add('today');
+    c.innerHTML=d+(sales.indexOf(d)>=0?'<div class="dot"></div>':'');
+    grid.appendChild(c);
+  }
+}
+
+// ---- INIT ----
+showScreen('screen-login');
+</script>
+</body>
+</html>
++Math.round(comissao).toLocaleString('pt-BR')+'</td>'+
+      '<td><span class="badge '+badgeClass+'">'+v.status+'</span></td>'+
+      '<td><i class="ti ti-trash" style="cursor:pointer;color:var(--muted)" onclick="excluirVenda(\''+v.id+'\')"></i></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function abrirModalVenda() {
+  document.getElementById('venda-closer').value = '';
+  document.getElementById('venda-cliente').value = '';
+  document.getElementById('venda-valor').value = '';
+  document.getElementById('venda-comissao').value = '20';
+  document.getElementById('venda-data').value = new Date().toISOString().split('T')[0];
+  document.getElementById('venda-status').value = 'pendente';
+  document.getElementById('venda-err').style.display = 'none';
+  document.getElementById('modal-venda').style.display = 'flex';
+}
+
+function fecharModalVenda() { document.getElementById('modal-venda').style.display = 'none'; }
+
+async function salvarVenda() {
+  var closer = document.getElementById('venda-closer').value.trim();
+  var cliente = document.getElementById('venda-cliente').value.trim();
+  var valor = document.getElementById('venda-valor').value;
+  var err = document.getElementById('venda-err');
+  if(!closer||!cliente||!valor){ err.textContent='Preencha todos os campos.'; err.style.display='block'; return; }
+  var payload = {
+    closer: closer, cliente: cliente, valor: valor,
+    comissao_pct: document.getElementById('venda-comissao').value||20,
+    data_venda: document.getElementById('venda-data').value,
+    status: document.getElementById('venda-status').value
+  };
+  var result = await supaFetch('vendas', 'POST', payload);
+  if(result){ fecharModalVenda(); carregarVendas(); }
+  else { err.textContent='Erro ao salvar.'; err.style.display='block'; }
+}
+
+async function excluirVenda(id) {
+  if(!confirm('Excluir esta venda?')) return;
+  await supaFetch('vendas?id=eq.'+id, 'DELETE');
+  carregarVendas();
 }
 
 // ---- COLABORADORES ----
