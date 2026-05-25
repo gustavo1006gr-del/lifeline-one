@@ -762,7 +762,7 @@ async function salvarCliente(){
   var nome=document.getElementById('cli-nome').value.trim();
   var err=document.getElementById('cliente-err');
   if(!nome){err.textContent='Nome obrigatorio.';err.style.display='block';return;}
-  var p={nome:nome,responsavel:document.getElementById('cli-resp').value,nicho:document.getElementById('cli-nicho').value,valor_implantacao:document.getElementById('cli-implantacao').value||null,valor_recorrencia:document.getElementById('cli-recorrencia').value||null,data_entrada:document.getElementById('cli-data-entrada').value||null,status:document.getElementById('cli-status').value,closer:document.getElementById('cli-closer').value,servicos:document.getElementById('cli-servicos').value,observacoes:document.getElementById('cli-obs').value};
+  var p={nome:nome,responsavel:document.getElementById('cli-resp').value,nicho:document.getElementById('cli-nicho').value,valor_implantacao:Number(document.getElementById('cli-implantacao').value)||0,valor_recorrencia:Number(document.getElementById('cli-recorrencia').value)||0,data_entrada:document.getElementById('cli-data-entrada').value||null,status:document.getElementById('cli-status').value,closer:document.getElementById('cli-closer').value,servicos:document.getElementById('cli-servicos').value,observacoes:document.getElementById('cli-obs').value};
   var r=id?await supaFetch('clientes?id=eq.'+id,'PATCH',p):await supaFetch('clientes','POST',p);
   if(r){fecharModalCliente();carregarClientes();}
   else{err.textContent='Erro ao salvar.';err.style.display='block';}
