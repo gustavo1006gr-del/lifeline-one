@@ -280,9 +280,10 @@ tr:hover td{background:rgba(29,111,245,.04)}
         <div class="section-header"><div class="section-title">Clientes e Contratos</div><button class="btn" onclick="abrirModalCliente()"><i class="ti ti-plus"></i>Novo Cliente</button></div>
         <div class="kpi-grid" style="margin-bottom:14px">
           <div class="kpi"><div class="kpi-label">Clientes Ativos</div><div class="kpi-value green" id="cli-ativos">--</div></div>
-          <div class="kpi"><div class="kpi-label">MRR Total</div><div class="kpi-value blue" id="cli-mrr">--</div></div>
+          <div class="kpi"><div class="kpi-label">MRR Atual</div><div class="kpi-value blue" id="cli-mrr">--</div></div>
           <div class="kpi"><div class="kpi-label">Implantacoes</div><div class="kpi-value amber" id="cli-implantacao-total">--</div></div>
           <div class="kpi"><div class="kpi-label">LTV Total</div><div class="kpi-value green" id="cli-ltv">--</div></div>
+          <div class="kpi"><div class="kpi-label">LTV Este Mes</div><div class="kpi-value purple" id="cli-ltv-mes">--</div></div>
         </div>
         <div class="filter-row" id="cli-periodo">
           <div class="filter-btn active" onclick="setFiltroCli('todos',this)">Todos</div>
@@ -423,9 +424,9 @@ tr:hover td{background:rgba(29,111,245,.04)}
       <div class="fg"><label>Meses de contrato</label><input type="number" id="cli-meses-contrato" placeholder="Ex: 6"/></div>
       <div class="fg"><label>Data de entrada</label><input type="date" id="cli-data-entrada"/></div>
       <div class="fg"><label>Status</label><select id="cli-status"><option value="ativo">Ativo</option><option value="inativo">Inativo</option><option value="churn">Churn</option></select></div>
+      <div class="fg"><label>Dia do pagamento</label><input type="number" id="cli-dia-pagamento" placeholder="Ex: 5" min="1" max="31"/></div>
       <div class="fg"><label>Closer</label><input type="text" id="cli-closer" placeholder="Nome do closer"/></div>
       <div class="fg" style="grid-column:1/-1"><label>Servicos</label><input type="text" id="cli-servicos" placeholder="Ex: Trafego, Social Media"/></div>
-      <div class="fg" style="grid-column:1/-1"><label>Observacoes</label><input type="text" id="cli-obs" placeholder="Notas internas"/></div>
     </div>
     <div class="auth-err" id="cliente-err"></div>
     <div class="modal-actions"><button class="btn ghost" style="flex:1" onclick="fecharModalCliente()">Cancelar</button><button class="btn" style="flex:2" onclick="salvarCliente()">Salvar</button></div>
@@ -538,7 +539,7 @@ function abrirModalCusto() {
 function fecharModalCusto() { document.getElementById("modal-custo").style.display = "none"; }
 
 function abrirModalCliente() {
-  ["cliente-id","cli-nome","cli-resp","cli-nicho","cli-implantacao","cli-recorrencia","cli-meses-contrato","cli-closer","cli-servicos","cli-obs"].forEach(function(id) {
+  ["cliente-id","cli-nome","cli-resp","cli-nicho","cli-implantacao","cli-recorrencia","cli-meses-contrato","cli-dia-pagamento","cli-closer","cli-servicos","cli-obs"].forEach(function(id) {
     document.getElementById(id).value = "";
   });
   document.getElementById("cli-data-entrada").value = "";
@@ -843,14 +844,23 @@ async function carregarClientes() {
   if (!data) return;
   todosClientes = data;
   renderClientes(data);
+  var agora = new Date();
   var ativos = data.filter(function(c) { return c.status === "ativo"; });
   var mrr = ativos.reduce(function(a, c) { return a + Number(c.valor_recorrencia || 0); }, 0);
   var imp = data.reduce(function(a, c) { return a + Number(c.valor_implantacao || 0); }, 0);
   var ltv = data.reduce(function(a, c) { return a + calcLTV(c); }, 0);
+  var ltvMes = ativos.reduce(function(a, c) {
+    if (!c.data_entrada) return a;
+    var entrada = new Date(c.data_entrada);
+    var mesesNaBase = Math.floor((agora - entrada) / (1000 * 60 * 60 * 24 * 30));
+    if (mesesNaBase >= 1) return a + Number(c.valor_recorrencia || 0);
+    return a;
+  }, 0);
   document.getElementById("cli-ativos").textContent = ativos.length;
   document.getElementById("cli-mrr").textContent = "R$ " + mrr.toLocaleString("pt-BR");
   document.getElementById("cli-implantacao-total").textContent = "R$ " + imp.toLocaleString("pt-BR");
   document.getElementById("cli-ltv").textContent = "R$ " + Math.round(ltv).toLocaleString("pt-BR");
+  document.getElementById("cli-ltv-mes").textContent = "R$ " + ltvMes.toLocaleString("pt-BR");
   document.getElementById("kpi-clientes").textContent = ativos.length;
 }
 
@@ -880,6 +890,7 @@ function renderClientes(data) {
         "<div style='background:rgba(167,139,250,.1);border-radius:6px;padding:7px'><div style='color:var(--muted);font-size:10px'>LTV</div><div style='color:#a78bfa;font-weight:600;margin-top:2px'>R$" + Math.round(ltv).toLocaleString("pt-BR") + "</div></div>" +
       "</div>" +
       (c.closer ? "<div style='font-size:11px;color:var(--muted);margin-top:8px'>Closer: <span style='color:var(--text)'>" + c.closer + "</span></div>" : "") +
+      (c.dia_pagamento ? "<div style='font-size:11px;color:var(--muted);margin-top:4px'>Pagamento: <span style='color:#fbbf24'>Dia " + c.dia_pagamento + "</span></div>" : "") +
       "<div style='display:flex;gap:6px;margin-top:10px'>" +
         "<button class='btn ghost' style='flex:1;font-size:11px;padding:5px' onclick='editarCliente(\"" + c.id + "\")'>Editar</button>" +
         "<button class='btn' style='background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:#f87171;flex:1;font-size:11px;padding:5px' onclick='excluirCliente(\"" + c.id + "\")'>Excluir</button>" +
@@ -899,6 +910,7 @@ function editarCliente(id) {
     document.getElementById("cli-implantacao").value = c.valor_implantacao || "";
     document.getElementById("cli-recorrencia").value = c.valor_recorrencia || "";
     document.getElementById("cli-meses-contrato").value = c.meses_contrato || "";
+    document.getElementById("cli-dia-pagamento").value = c.dia_pagamento || "";
     document.getElementById("cli-data-entrada").value = c.data_entrada || "";
     document.getElementById("cli-status").value = c.status || "ativo";
     document.getElementById("cli-closer").value = c.closer || "";
@@ -921,6 +933,7 @@ async function salvarCliente() {
     valor_implantacao: Number(document.getElementById("cli-implantacao").value) || 0,
     valor_recorrencia: Number(document.getElementById("cli-recorrencia").value) || 0,
     meses_contrato: Number(document.getElementById("cli-meses-contrato").value) || 0,
+    dia_pagamento: Number(document.getElementById("cli-dia-pagamento").value) || 0,
     data_entrada: document.getElementById("cli-data-entrada").value || null,
     status: document.getElementById("cli-status").value,
     closer: document.getElementById("cli-closer").value,
