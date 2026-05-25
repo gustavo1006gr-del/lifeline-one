@@ -707,12 +707,12 @@ function filtrarCliPeriodo(data){
 }
 
 async function carregarClientes(){
-  var data=await supaFetch('clientes?order=criado_em.desc');
+  var data=await supaFetch('clientes?order=criado_em.desc&select=*');
   if(!data)return;
   todosClientes=data;
   renderClientes(data);
   var ativos=data.filter(function(c){return c.status==='ativo';});
-  var mrr=ativos.reduce(function(a,c){return a+Number(c.valor_recorrencia||0);},0);
+  var mrr=ativos.reduce(function(a,c){return a+Number(c.valor_recorrencia||c.valor_contrato||0);},0);
   var imp=data.reduce(function(a,c){return a+Number(c.valor_implantacao||0);},0);
   var ltv=data.reduce(function(a,c){return a+calcLTV(c);},0);
   document.getElementById('cli-ativos').textContent=ativos.length;
