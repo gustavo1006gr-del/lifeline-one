@@ -512,7 +512,7 @@ function abrirModalCusto(){
 function fecharModalCusto(){document.getElementById('modal-custo').style.display='none';}
 
 function abrirModalCliente(){
-  ['cliente-id','cli-nome','cli-resp','cli-nicho','cli-implantacao','cli-recorrencia','cli-closer','cli-servicos','cli-obs'].forEach(function(id){document.getElementById(id).value='';});
+  ['cliente-id','cli-nome','cli-resp','cli-nicho','cli-implantacao','cli-recorrencia','cli-meses-contrato','cli-closer','cli-servicos','cli-obs'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('cli-data-entrada').value='';
   document.getElementById('cli-status').value='ativo';
   document.getElementById('cliente-err').style.display='none';
@@ -682,9 +682,9 @@ async function salvarCusto(){
 async function excluirCusto(id){if(!confirm('Excluir?'))return;await supaFetch('custos?id=eq.'+id,'DELETE');carregarCustos();}
 
 function calcLTV(c){
-  if(!c.data_entrada||!c.valor_recorrencia)return 0;
-  var meses=Math.floor((new Date()-new Date(c.data_entrada))/(1000*60*60*24*30));
-  return Math.max(0,meses-1)*Number(c.valor_recorrencia);
+  var mrr=Number(c.valor_recorrencia||0);
+  var meses=Number(c.meses_contrato||0);
+  return mrr*meses;
 }
 
 function setFiltroCli(v,el){
@@ -729,12 +729,9 @@ function renderClientes(data){
   g.innerHTML=data.map(function(c,i){
     var ini=c.nome.substring(0,2).toUpperCase();
     var bc=c.status==='ativo'?'green':c.status==='churn'?'red':'amber';
-    var meses=c.data_entrada?Math.floor((new Date()-new Date(c.data_entrada))/(1000*60*60*24*30)):0;
+    var meses=Number(c.meses_contrato||0);
     var ltv=calcLTV(c);
-    var rec=c.valor_recorrencia?'R$'+Number(c.valor_recorrencia).toLocaleString('pt-BR')+'/mes':'--';
-    var imp=c.valor_implantacao?'R$'+Number(c.valor_implantacao).toLocaleString('pt-BR'):'--';
-    var servs=c.servicos?'<div class="service-tags">'+c.servicos.split(',').map(function(s){return'<span class="service-tag">'+s.trim()+'</span>';}).join('')+'</div>':'';
-    return '<div class="client-card"><div class="client-top"><div class="client-logo" style="background:'+avColors[i%avColors.length]+'">'+ini+'</div><div><div class="client-name">'+c.nome+'</div><div class="client-niche">'+(c.nicho||'--')+'</div></div><div style="margin-left:auto"><span class="badge '+bc+'">'+c.status+'</span></div></div>'+servs+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;font-size:12px"><div style="background:rgba(29,111,245,.1);border-radius:6px;padding:7px"><div style="color:var(--muted);font-size:10px">IMPLANTACAO</div><div style="color:#fff;font-weight:600;margin-top:2px">'+imp+'</div></div><div style="background:rgba(56,189,248,.1);border-radius:6px;padding:7px"><div style="color:var(--muted);font-size:10px">RECORRENCIA</div><div style="color:var(--neon);font-weight:600;margin-top:2px">'+rec+'</div></div><div style="background:rgba(52,211,153,.08);border-radius:6px;padding:7px"><div style="color:var(--muted);font-size:10px">TEMPO DE CASA</div><div style="color:#34d399;font-weight:600;margin-top:2px">'+meses+' meses</div></div><div style="background:rgba(167,139,250,.1);border-radius:6px;padding:7px"><div style="color:var(--muted);font-size:10px">LTV</div><div style="color:#a78bfa;font-weight:600;margin-top:2px">R$'+Math.round(ltv).toLocaleString('pt-BR')+'</div></div></div>'+(c.closer?'<div style="font-size:11px;color:var(--muted);margin-top:8px">Closer: <span style="color:var(--text)">'+c.closer+'</span></div>':'')+'<div style="display:flex;gap:6px;margin-top:10px"><button class="btn ghost" style="flex:1;font-size:11px;padding:5px" onclick="editarCliente(\''+c.id+'\')">Editar</button><button class="btn" style="background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:#f87171;flex:1;font-size:11px;padding:5px" onclick="excluirCliente(\''+c.id+'\')">Excluir</button></div></div>';
+    var rec=c.valor_recorrencia?'R
   }).join('');
 }
 
@@ -763,7 +760,412 @@ async function salvarCliente(){
   var nome=document.getElementById('cli-nome').value.trim();
   var err=document.getElementById('cliente-err');
   if(!nome){err.textContent='Nome obrigatorio.';err.style.display='block';return;}
-  var p={nome:nome,responsavel:document.getElementById('cli-resp').value,nicho:document.getElementById('cli-nicho').value,valor_implantacao:Number(document.getElementById('cli-implantacao').value)||0,valor_recorrencia:Number(document.getElementById('cli-recorrencia').value)||0,data_entrada:document.getElementById('cli-data-entrada').value||null,status:document.getElementById('cli-status').value,closer:document.getElementById('cli-closer').value,servicos:document.getElementById('cli-servicos').value,observacoes:document.getElementById('cli-obs').value};
+  var p={nome:nome,responsavel:document.getElementById('cli-resp').value,nicho:document.getElementById('cli-nicho').value,valor_implantacao:Number(document.getElementById('cli-implantacao').value)||0,valor_recorrencia:Number(document.getElementById('cli-recorrencia').value)||0,meses_contrato:Number(document.getElementById('cli-meses-contrato').value)||0,data_entrada:document.getElementById('cli-data-entrada').value||null,status:document.getElementById('cli-status').value,closer:document.getElementById('cli-closer').value,servicos:document.getElementById('cli-servicos').value,observacoes:document.getElementById('cli-obs').value};
+  var r=id?await supaFetch('clientes?id=eq.'+id,'PATCH',p):await supaFetch('clientes','POST',p);
+  if(r){fecharModalCliente();carregarClientes();}
+  else{err.textContent='Erro ao salvar.';err.style.display='block';}
+}
+
+async function excluirCliente(id){if(!confirm('Excluir?'))return;await supaFetch('clientes?id=eq.'+id,'DELETE');carregarClientes();}
+
+var RC={ADMIN:'blue',CLOSER:'amber',SDR:'red',DEV:'green',GESTOR:'purple',FINANCEIRO:'gray'};
+var AVC=['linear-gradient(135deg,#1d6ff5,#38bdf8)','linear-gradient(135deg,#7c3aed,#a78bfa)','linear-gradient(135deg,#059669,#34d399)','linear-gradient(135deg,#d97706,#fbbf24)','linear-gradient(135deg,#e11d48,#f87171)'];
+
+function refreshUsers(){
+  var active=USERS.filter(function(u){return u.status==='active';});
+  var pending=USERS.filter(function(u){return u.status==='pending';});
+  var denied=USERS.filter(function(u){return u.status==='denied';});
+  document.getElementById('stat-a').textContent=active.length;
+  document.getElementById('stat-p').textContent=pending.length;
+  document.getElementById('stat-d').textContent=denied.length;
+  document.getElementById('notif-dot').style.display=pending.length>0?'block':'none';
+  var pl=document.getElementById('pending-list');
+  if(!pending.length){pl.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0">Nenhuma solicitacao pendente.</div>';}
+  else{pl.innerHTML=pending.map(function(u,i){var ini=u.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();return'<div class="user-req-card"><div class="user-req-av" style="background:'+AVC[i%AVC.length]+'">'+ini+'</div><div class="user-req-info"><div class="user-req-name">'+u.name+'</div><div class="user-req-detail">'+u.email+' - '+u.role+'</div></div><div class="user-req-actions"><button class="approve-btn" onclick="approveUser(\''+u.email+'\')">Aprovar</button><button class="deny-btn" onclick="denyUser(\''+u.email+'\')">Negar</button></div></div>';}).join('');}
+  var tb=document.getElementById('users-table');
+  tb.innerHTML=active.map(function(u){return'<tr><td>'+u.name+'</td><td>'+u.email+'</td><td><span class="badge '+(RC[u.role]||'gray')+'">'+u.role+'</span></td><td><span class="badge green">Ativo</span></td></tr>';}).join('');
+}
+
+function approveUser(email){USERS.forEach(function(u){if(u.email===email)u.status='active';});refreshUsers();}
+function denyUser(email){USERS.forEach(function(u){if(u.email===email)u.status='denied';});refreshUsers();}
+
+var MENUS=[
+  {id:'dashboard',label:'Dashboard Geral',icon:'ti-layout-dashboard',roles:['ADMIN','GESTOR','FINANCEIRO']},
+  {id:'colaboradores',label:'Colaboradores',icon:'ti-users',roles:['ADMIN','GESTOR']},
+  {id:'closers',label:'Closers / Comissao',icon:'ti-trophy',roles:['ADMIN','GESTOR','CLOSER']},
+  {id:'custos',label:'Custos Operacionais',icon:'ti-receipt',roles:['ADMIN','FINANCEIRO','GESTOR']},
+  {id:'clientes',label:'Clientes / Contratos',icon:'ti-building',roles:['ADMIN','GESTOR','DEV','CLOSER']},
+  {id:'escritorio',label:'Escritorio',icon:'ti-armchair',roles:['ADMIN','GESTOR']},
+  {id:'calendario',label:'Calendario',icon:'ti-calendar',roles:['ADMIN','GESTOR','CLOSER','SDR','DEV','FINANCEIRO']},
+  {id:'relatorios',label:'Relatorios',icon:'ti-chart-bar',roles:['ADMIN','GESTOR','FINANCEIRO']},
+  {id:'usuarios',label:'Usuarios e Acessos',icon:'ti-shield-check',roles:['ADMIN']},
+  {id:'configuracoes',label:'Configuracoes',icon:'ti-settings',roles:['ADMIN']},
+];
+
+function loadDashboard(user){
+  document.getElementById('screen-login').style.display='none';
+  document.getElementById('screen-register').style.display='none';
+  document.getElementById('screen-pending').style.display='none';
+  document.getElementById('app').style.cssText='display:flex;height:100vh;overflow:hidden;';
+  var ini=user.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+  document.getElementById('sf-av').textContent=ini;
+  document.getElementById('sf-name').textContent=user.name;
+  document.getElementById('sf-role').textContent=user.role;
+  document.getElementById('topbar-av').textContent=ini;
+  var nav=document.getElementById('nav-menu');nav.innerHTML='';
+  var visible=MENUS.filter(function(m){return m.roles.indexOf(user.role)>=0;});
+  visible.forEach(function(m,i){
+    var d=document.createElement('div');
+    d.className='nav-item'+(i===0?' active':'');
+    d.innerHTML='<i class="ti '+m.icon+'"></i>'+m.label;
+    d.onclick=function(){goPage(m.id,d);};
+    nav.appendChild(d);
+  });
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('page-'+visible[0].id).classList.add('active');
+  document.getElementById('page-title').textContent=visible[0].label;
+  initCharts();buildCal();
+  carregarColabs();carregarVendas();carregarCustos();carregarClientes();
+  if(user.role==='ADMIN')refreshUsers();
+}
+
+function goPage(id,el){
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  el.classList.add('active');
+  document.getElementById('page-'+id).classList.add('active');
+  var m=MENUS.filter(function(x){return x.id===id;})[0];
+  document.getElementById('page-title').textContent=m?m.label:'';
+  if(id==='usuarios')refreshUsers();
+}
+
+var gc='rgba(255,255,255,.05)',blue='#1d6ff5',neon='#38bdf8',green='#34d399',amber='#fbbf24',red='#f87171',mu='rgba(255,255,255,.32)';
+var bO={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11}}}}};
+
+function initCharts(){
+  if(window.cDash)return;window.cDash=true;
+  new Chart(document.getElementById('cGastos'),{type:'bar',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Salarios',data:[76000,78000,80000,81000,84200],backgroundColor:'rgba(29,111,245,.55)',borderRadius:3},{label:'Comissao',data:[14000,16000,17000,18200,21480],backgroundColor:'rgba(56,189,248,.45)',borderRadius:3},{label:'Custos',data:[11200,12000,11800,12100,17210],backgroundColor:'rgba(251,191,36,.4)',borderRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:10,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+  new Chart(document.getElementById('cDist'),{type:'doughnut',data:{labels:['Salarios','Comissao','Softwares','Infra','Outros'],datasets:[{data:[84200,21480,6400,1000,6810],backgroundColor:[blue,neon,'rgba(167,139,250,.8)',green,amber],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{color:mu,boxWidth:9,font:{size:11},padding:7}}}}});
+}
+
+function buildCal(){
+  var grid=document.getElementById('calGrid');if(!grid)return;
+  var sales=[8,9,10,12,14,19,22,23];
+  for(var i=0;i<4;i++)grid.appendChild(document.createElement('div'));
+  for(var d=1;d<=31;d++){
+    var c=document.createElement('div');
+    c.style.cssText='aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:7px;font-size:12px;cursor:pointer;border:1px solid transparent;color:var(--muted)';
+    if(sales.indexOf(d)>=0)c.style.cssText+='background:rgba(29,111,245,.16);border-color:rgba(29,111,245,.28);color:var(--neon)';
+    c.textContent=d;
+    grid.appendChild(c);
+  }
+}
+
+showScreen('screen-login');
+</script>
+</body>
+</html>
++Number(c.valor_recorrencia).toLocaleString('pt-BR')+'/mes':'--';
+    var imp=c.valor_implantacao?'R
+  }).join('');
+}
+
+function editarCliente(id){
+  supaFetch('clientes?id=eq.'+id).then(function(r){
+    if(!r||!r[0])return;
+    var c=r[0];
+    document.getElementById('cliente-id').value=c.id;
+    document.getElementById('cli-nome').value=c.nome||'';
+    document.getElementById('cli-resp').value=c.responsavel||'';
+    document.getElementById('cli-nicho').value=c.nicho||'';
+    document.getElementById('cli-implantacao').value=c.valor_implantacao||'';
+    document.getElementById('cli-recorrencia').value=c.valor_recorrencia||'';
+    document.getElementById('cli-data-entrada').value=c.data_entrada||'';
+    document.getElementById('cli-status').value=c.status||'ativo';
+    document.getElementById('cli-closer').value=c.closer||'';
+    document.getElementById('cli-servicos').value=c.servicos||'';
+    document.getElementById('cli-obs').value=c.observacoes||'';
+    document.getElementById('modal-cliente-title').textContent='Editar Cliente';
+    document.getElementById('modal-cliente').style.display='flex';
+  });
+}
+
+async function salvarCliente(){
+  var id=document.getElementById('cliente-id').value;
+  var nome=document.getElementById('cli-nome').value.trim();
+  var err=document.getElementById('cliente-err');
+  if(!nome){err.textContent='Nome obrigatorio.';err.style.display='block';return;}
+  var p={nome:nome,responsavel:document.getElementById('cli-resp').value,nicho:document.getElementById('cli-nicho').value,valor_implantacao:Number(document.getElementById('cli-implantacao').value)||0,valor_recorrencia:Number(document.getElementById('cli-recorrencia').value)||0,meses_contrato:Number(document.getElementById('cli-meses-contrato').value)||0,data_entrada:document.getElementById('cli-data-entrada').value||null,status:document.getElementById('cli-status').value,closer:document.getElementById('cli-closer').value,servicos:document.getElementById('cli-servicos').value,observacoes:document.getElementById('cli-obs').value};
+  var r=id?await supaFetch('clientes?id=eq.'+id,'PATCH',p):await supaFetch('clientes','POST',p);
+  if(r){fecharModalCliente();carregarClientes();}
+  else{err.textContent='Erro ao salvar.';err.style.display='block';}
+}
+
+async function excluirCliente(id){if(!confirm('Excluir?'))return;await supaFetch('clientes?id=eq.'+id,'DELETE');carregarClientes();}
+
+var RC={ADMIN:'blue',CLOSER:'amber',SDR:'red',DEV:'green',GESTOR:'purple',FINANCEIRO:'gray'};
+var AVC=['linear-gradient(135deg,#1d6ff5,#38bdf8)','linear-gradient(135deg,#7c3aed,#a78bfa)','linear-gradient(135deg,#059669,#34d399)','linear-gradient(135deg,#d97706,#fbbf24)','linear-gradient(135deg,#e11d48,#f87171)'];
+
+function refreshUsers(){
+  var active=USERS.filter(function(u){return u.status==='active';});
+  var pending=USERS.filter(function(u){return u.status==='pending';});
+  var denied=USERS.filter(function(u){return u.status==='denied';});
+  document.getElementById('stat-a').textContent=active.length;
+  document.getElementById('stat-p').textContent=pending.length;
+  document.getElementById('stat-d').textContent=denied.length;
+  document.getElementById('notif-dot').style.display=pending.length>0?'block':'none';
+  var pl=document.getElementById('pending-list');
+  if(!pending.length){pl.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0">Nenhuma solicitacao pendente.</div>';}
+  else{pl.innerHTML=pending.map(function(u,i){var ini=u.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();return'<div class="user-req-card"><div class="user-req-av" style="background:'+AVC[i%AVC.length]+'">'+ini+'</div><div class="user-req-info"><div class="user-req-name">'+u.name+'</div><div class="user-req-detail">'+u.email+' - '+u.role+'</div></div><div class="user-req-actions"><button class="approve-btn" onclick="approveUser(\''+u.email+'\')">Aprovar</button><button class="deny-btn" onclick="denyUser(\''+u.email+'\')">Negar</button></div></div>';}).join('');}
+  var tb=document.getElementById('users-table');
+  tb.innerHTML=active.map(function(u){return'<tr><td>'+u.name+'</td><td>'+u.email+'</td><td><span class="badge '+(RC[u.role]||'gray')+'">'+u.role+'</span></td><td><span class="badge green">Ativo</span></td></tr>';}).join('');
+}
+
+function approveUser(email){USERS.forEach(function(u){if(u.email===email)u.status='active';});refreshUsers();}
+function denyUser(email){USERS.forEach(function(u){if(u.email===email)u.status='denied';});refreshUsers();}
+
+var MENUS=[
+  {id:'dashboard',label:'Dashboard Geral',icon:'ti-layout-dashboard',roles:['ADMIN','GESTOR','FINANCEIRO']},
+  {id:'colaboradores',label:'Colaboradores',icon:'ti-users',roles:['ADMIN','GESTOR']},
+  {id:'closers',label:'Closers / Comissao',icon:'ti-trophy',roles:['ADMIN','GESTOR','CLOSER']},
+  {id:'custos',label:'Custos Operacionais',icon:'ti-receipt',roles:['ADMIN','FINANCEIRO','GESTOR']},
+  {id:'clientes',label:'Clientes / Contratos',icon:'ti-building',roles:['ADMIN','GESTOR','DEV','CLOSER']},
+  {id:'escritorio',label:'Escritorio',icon:'ti-armchair',roles:['ADMIN','GESTOR']},
+  {id:'calendario',label:'Calendario',icon:'ti-calendar',roles:['ADMIN','GESTOR','CLOSER','SDR','DEV','FINANCEIRO']},
+  {id:'relatorios',label:'Relatorios',icon:'ti-chart-bar',roles:['ADMIN','GESTOR','FINANCEIRO']},
+  {id:'usuarios',label:'Usuarios e Acessos',icon:'ti-shield-check',roles:['ADMIN']},
+  {id:'configuracoes',label:'Configuracoes',icon:'ti-settings',roles:['ADMIN']},
+];
+
+function loadDashboard(user){
+  document.getElementById('screen-login').style.display='none';
+  document.getElementById('screen-register').style.display='none';
+  document.getElementById('screen-pending').style.display='none';
+  document.getElementById('app').style.cssText='display:flex;height:100vh;overflow:hidden;';
+  var ini=user.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+  document.getElementById('sf-av').textContent=ini;
+  document.getElementById('sf-name').textContent=user.name;
+  document.getElementById('sf-role').textContent=user.role;
+  document.getElementById('topbar-av').textContent=ini;
+  var nav=document.getElementById('nav-menu');nav.innerHTML='';
+  var visible=MENUS.filter(function(m){return m.roles.indexOf(user.role)>=0;});
+  visible.forEach(function(m,i){
+    var d=document.createElement('div');
+    d.className='nav-item'+(i===0?' active':'');
+    d.innerHTML='<i class="ti '+m.icon+'"></i>'+m.label;
+    d.onclick=function(){goPage(m.id,d);};
+    nav.appendChild(d);
+  });
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('page-'+visible[0].id).classList.add('active');
+  document.getElementById('page-title').textContent=visible[0].label;
+  initCharts();buildCal();
+  carregarColabs();carregarVendas();carregarCustos();carregarClientes();
+  if(user.role==='ADMIN')refreshUsers();
+}
+
+function goPage(id,el){
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  el.classList.add('active');
+  document.getElementById('page-'+id).classList.add('active');
+  var m=MENUS.filter(function(x){return x.id===id;})[0];
+  document.getElementById('page-title').textContent=m?m.label:'';
+  if(id==='usuarios')refreshUsers();
+}
+
+var gc='rgba(255,255,255,.05)',blue='#1d6ff5',neon='#38bdf8',green='#34d399',amber='#fbbf24',red='#f87171',mu='rgba(255,255,255,.32)';
+var bO={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11}}}}};
+
+function initCharts(){
+  if(window.cDash)return;window.cDash=true;
+  new Chart(document.getElementById('cGastos'),{type:'bar',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Salarios',data:[76000,78000,80000,81000,84200],backgroundColor:'rgba(29,111,245,.55)',borderRadius:3},{label:'Comissao',data:[14000,16000,17000,18200,21480],backgroundColor:'rgba(56,189,248,.45)',borderRadius:3},{label:'Custos',data:[11200,12000,11800,12100,17210],backgroundColor:'rgba(251,191,36,.4)',borderRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:10,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+  new Chart(document.getElementById('cDist'),{type:'doughnut',data:{labels:['Salarios','Comissao','Softwares','Infra','Outros'],datasets:[{data:[84200,21480,6400,1000,6810],backgroundColor:[blue,neon,'rgba(167,139,250,.8)',green,amber],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{color:mu,boxWidth:9,font:{size:11},padding:7}}}}});
+}
+
+function buildCal(){
+  var grid=document.getElementById('calGrid');if(!grid)return;
+  var sales=[8,9,10,12,14,19,22,23];
+  for(var i=0;i<4;i++)grid.appendChild(document.createElement('div'));
+  for(var d=1;d<=31;d++){
+    var c=document.createElement('div');
+    c.style.cssText='aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:7px;font-size:12px;cursor:pointer;border:1px solid transparent;color:var(--muted)';
+    if(sales.indexOf(d)>=0)c.style.cssText+='background:rgba(29,111,245,.16);border-color:rgba(29,111,245,.28);color:var(--neon)';
+    c.textContent=d;
+    grid.appendChild(c);
+  }
+}
+
+showScreen('screen-login');
+</script>
+</body>
+</html>
++Number(c.valor_implantacao).toLocaleString('pt-BR'):'--';
+    var servs=c.servicos?'<div class="service-tags">'+c.servicos.split(',').map(function(s){return'<span class="service-tag">'+s.trim()+'</span>';}).join('')+'</div>':'';
+    return '<div class="client-card"><div class="client-top"><div class="client-logo" style="background:'+avColors[i%avColors.length]+'">'+ini+'</div><div><div class="client-name">'+c.nome+'</div><div class="client-niche">'+(c.nicho||'--')+'</div></div><div style="margin-left:auto"><span class="badge '+bc+'">'+c.status+'</span></div></div>'+servs+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;font-size:12px"><div style="background:rgba(29,111,245,.1);border-radius:6px;padding:7px"><div style="color:var(--muted);font-size:10px">IMPLANTACAO</div><div style="color:#fff;font-weight:600;margin-top:2px">'+imp+'</div></div><div style="background:rgba(56,189,248,.1);border-radius:6px;padding:7px"><div style="color:var(--muted);font-size:10px">RECORRENCIA</div><div style="color:var(--neon);font-weight:600;margin-top:2px">'+rec+'</div></div><div style="background:rgba(52,211,153,.08);border-radius:6px;padding:7px"><div style="color:var(--muted);font-size:10px">MESES CONTRATO</div><div style="color:#34d399;font-weight:600;margin-top:2px">'+meses+' meses</div></div><div style="background:rgba(167,139,250,.1);border-radius:6px;padding:7px"><div style="color:var(--muted);font-size:10px">LTV</div><div style="color:#a78bfa;font-weight:600;margin-top:2px">R
+  }).join('');
+}
+
+function editarCliente(id){
+  supaFetch('clientes?id=eq.'+id).then(function(r){
+    if(!r||!r[0])return;
+    var c=r[0];
+    document.getElementById('cliente-id').value=c.id;
+    document.getElementById('cli-nome').value=c.nome||'';
+    document.getElementById('cli-resp').value=c.responsavel||'';
+    document.getElementById('cli-nicho').value=c.nicho||'';
+    document.getElementById('cli-implantacao').value=c.valor_implantacao||'';
+    document.getElementById('cli-recorrencia').value=c.valor_recorrencia||'';
+    document.getElementById('cli-data-entrada').value=c.data_entrada||'';
+    document.getElementById('cli-status').value=c.status||'ativo';
+    document.getElementById('cli-closer').value=c.closer||'';
+    document.getElementById('cli-servicos').value=c.servicos||'';
+    document.getElementById('cli-obs').value=c.observacoes||'';
+    document.getElementById('modal-cliente-title').textContent='Editar Cliente';
+    document.getElementById('modal-cliente').style.display='flex';
+  });
+}
+
+async function salvarCliente(){
+  var id=document.getElementById('cliente-id').value;
+  var nome=document.getElementById('cli-nome').value.trim();
+  var err=document.getElementById('cliente-err');
+  if(!nome){err.textContent='Nome obrigatorio.';err.style.display='block';return;}
+  var p={nome:nome,responsavel:document.getElementById('cli-resp').value,nicho:document.getElementById('cli-nicho').value,valor_implantacao:Number(document.getElementById('cli-implantacao').value)||0,valor_recorrencia:Number(document.getElementById('cli-recorrencia').value)||0,meses_contrato:Number(document.getElementById('cli-meses-contrato').value)||0,data_entrada:document.getElementById('cli-data-entrada').value||null,status:document.getElementById('cli-status').value,closer:document.getElementById('cli-closer').value,servicos:document.getElementById('cli-servicos').value,observacoes:document.getElementById('cli-obs').value};
+  var r=id?await supaFetch('clientes?id=eq.'+id,'PATCH',p):await supaFetch('clientes','POST',p);
+  if(r){fecharModalCliente();carregarClientes();}
+  else{err.textContent='Erro ao salvar.';err.style.display='block';}
+}
+
+async function excluirCliente(id){if(!confirm('Excluir?'))return;await supaFetch('clientes?id=eq.'+id,'DELETE');carregarClientes();}
+
+var RC={ADMIN:'blue',CLOSER:'amber',SDR:'red',DEV:'green',GESTOR:'purple',FINANCEIRO:'gray'};
+var AVC=['linear-gradient(135deg,#1d6ff5,#38bdf8)','linear-gradient(135deg,#7c3aed,#a78bfa)','linear-gradient(135deg,#059669,#34d399)','linear-gradient(135deg,#d97706,#fbbf24)','linear-gradient(135deg,#e11d48,#f87171)'];
+
+function refreshUsers(){
+  var active=USERS.filter(function(u){return u.status==='active';});
+  var pending=USERS.filter(function(u){return u.status==='pending';});
+  var denied=USERS.filter(function(u){return u.status==='denied';});
+  document.getElementById('stat-a').textContent=active.length;
+  document.getElementById('stat-p').textContent=pending.length;
+  document.getElementById('stat-d').textContent=denied.length;
+  document.getElementById('notif-dot').style.display=pending.length>0?'block':'none';
+  var pl=document.getElementById('pending-list');
+  if(!pending.length){pl.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0">Nenhuma solicitacao pendente.</div>';}
+  else{pl.innerHTML=pending.map(function(u,i){var ini=u.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();return'<div class="user-req-card"><div class="user-req-av" style="background:'+AVC[i%AVC.length]+'">'+ini+'</div><div class="user-req-info"><div class="user-req-name">'+u.name+'</div><div class="user-req-detail">'+u.email+' - '+u.role+'</div></div><div class="user-req-actions"><button class="approve-btn" onclick="approveUser(\''+u.email+'\')">Aprovar</button><button class="deny-btn" onclick="denyUser(\''+u.email+'\')">Negar</button></div></div>';}).join('');}
+  var tb=document.getElementById('users-table');
+  tb.innerHTML=active.map(function(u){return'<tr><td>'+u.name+'</td><td>'+u.email+'</td><td><span class="badge '+(RC[u.role]||'gray')+'">'+u.role+'</span></td><td><span class="badge green">Ativo</span></td></tr>';}).join('');
+}
+
+function approveUser(email){USERS.forEach(function(u){if(u.email===email)u.status='active';});refreshUsers();}
+function denyUser(email){USERS.forEach(function(u){if(u.email===email)u.status='denied';});refreshUsers();}
+
+var MENUS=[
+  {id:'dashboard',label:'Dashboard Geral',icon:'ti-layout-dashboard',roles:['ADMIN','GESTOR','FINANCEIRO']},
+  {id:'colaboradores',label:'Colaboradores',icon:'ti-users',roles:['ADMIN','GESTOR']},
+  {id:'closers',label:'Closers / Comissao',icon:'ti-trophy',roles:['ADMIN','GESTOR','CLOSER']},
+  {id:'custos',label:'Custos Operacionais',icon:'ti-receipt',roles:['ADMIN','FINANCEIRO','GESTOR']},
+  {id:'clientes',label:'Clientes / Contratos',icon:'ti-building',roles:['ADMIN','GESTOR','DEV','CLOSER']},
+  {id:'escritorio',label:'Escritorio',icon:'ti-armchair',roles:['ADMIN','GESTOR']},
+  {id:'calendario',label:'Calendario',icon:'ti-calendar',roles:['ADMIN','GESTOR','CLOSER','SDR','DEV','FINANCEIRO']},
+  {id:'relatorios',label:'Relatorios',icon:'ti-chart-bar',roles:['ADMIN','GESTOR','FINANCEIRO']},
+  {id:'usuarios',label:'Usuarios e Acessos',icon:'ti-shield-check',roles:['ADMIN']},
+  {id:'configuracoes',label:'Configuracoes',icon:'ti-settings',roles:['ADMIN']},
+];
+
+function loadDashboard(user){
+  document.getElementById('screen-login').style.display='none';
+  document.getElementById('screen-register').style.display='none';
+  document.getElementById('screen-pending').style.display='none';
+  document.getElementById('app').style.cssText='display:flex;height:100vh;overflow:hidden;';
+  var ini=user.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+  document.getElementById('sf-av').textContent=ini;
+  document.getElementById('sf-name').textContent=user.name;
+  document.getElementById('sf-role').textContent=user.role;
+  document.getElementById('topbar-av').textContent=ini;
+  var nav=document.getElementById('nav-menu');nav.innerHTML='';
+  var visible=MENUS.filter(function(m){return m.roles.indexOf(user.role)>=0;});
+  visible.forEach(function(m,i){
+    var d=document.createElement('div');
+    d.className='nav-item'+(i===0?' active':'');
+    d.innerHTML='<i class="ti '+m.icon+'"></i>'+m.label;
+    d.onclick=function(){goPage(m.id,d);};
+    nav.appendChild(d);
+  });
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('page-'+visible[0].id).classList.add('active');
+  document.getElementById('page-title').textContent=visible[0].label;
+  initCharts();buildCal();
+  carregarColabs();carregarVendas();carregarCustos();carregarClientes();
+  if(user.role==='ADMIN')refreshUsers();
+}
+
+function goPage(id,el){
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  el.classList.add('active');
+  document.getElementById('page-'+id).classList.add('active');
+  var m=MENUS.filter(function(x){return x.id===id;})[0];
+  document.getElementById('page-title').textContent=m?m.label:'';
+  if(id==='usuarios')refreshUsers();
+}
+
+var gc='rgba(255,255,255,.05)',blue='#1d6ff5',neon='#38bdf8',green='#34d399',amber='#fbbf24',red='#f87171',mu='rgba(255,255,255,.32)';
+var bO={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11}}}}};
+
+function initCharts(){
+  if(window.cDash)return;window.cDash=true;
+  new Chart(document.getElementById('cGastos'),{type:'bar',data:{labels:['Jan','Fev','Mar','Abr','Mai'],datasets:[{label:'Salarios',data:[76000,78000,80000,81000,84200],backgroundColor:'rgba(29,111,245,.55)',borderRadius:3},{label:'Comissao',data:[14000,16000,17000,18200,21480],backgroundColor:'rgba(56,189,248,.45)',borderRadius:3},{label:'Custos',data:[11200,12000,11800,12100,17210],backgroundColor:'rgba(251,191,36,.4)',borderRadius:3}]},options:Object.assign({},bO,{plugins:{legend:{display:true,labels:{color:mu,boxWidth:10,font:{size:11}}}},scales:{x:{grid:{color:gc},ticks:{color:mu,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mu,font:{size:11},callback:function(v){return'R$'+Math.round(v/1000)+'k'}}}}})});
+  new Chart(document.getElementById('cDist'),{type:'doughnut',data:{labels:['Salarios','Comissao','Softwares','Infra','Outros'],datasets:[{data:[84200,21480,6400,1000,6810],backgroundColor:[blue,neon,'rgba(167,139,250,.8)',green,amber],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{color:mu,boxWidth:9,font:{size:11},padding:7}}}}});
+}
+
+function buildCal(){
+  var grid=document.getElementById('calGrid');if(!grid)return;
+  var sales=[8,9,10,12,14,19,22,23];
+  for(var i=0;i<4;i++)grid.appendChild(document.createElement('div'));
+  for(var d=1;d<=31;d++){
+    var c=document.createElement('div');
+    c.style.cssText='aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:7px;font-size:12px;cursor:pointer;border:1px solid transparent;color:var(--muted)';
+    if(sales.indexOf(d)>=0)c.style.cssText+='background:rgba(29,111,245,.16);border-color:rgba(29,111,245,.28);color:var(--neon)';
+    c.textContent=d;
+    grid.appendChild(c);
+  }
+}
+
+showScreen('screen-login');
+</script>
+</body>
+</html>
++Math.round(ltv).toLocaleString('pt-BR')+'</div></div></div>'+(c.closer?'<div style="font-size:11px;color:var(--muted);margin-top:8px">Closer: <span style="color:var(--text)">'+c.closer+'</span></div>':'')+'<div style="display:flex;gap:6px;margin-top:10px"><button class="btn ghost" style="flex:1;font-size:11px;padding:5px" onclick="editarCliente(\''+c.id+'\')">Editar</button><button class="btn" style="background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:#f87171;flex:1;font-size:11px;padding:5px" onclick="excluirCliente(\''+c.id+'\')">Excluir</button></div></div>';
+  }).join('');
+}
+
+function editarCliente(id){
+  supaFetch('clientes?id=eq.'+id).then(function(r){
+    if(!r||!r[0])return;
+    var c=r[0];
+    document.getElementById('cliente-id').value=c.id;
+    document.getElementById('cli-nome').value=c.nome||'';
+    document.getElementById('cli-resp').value=c.responsavel||'';
+    document.getElementById('cli-nicho').value=c.nicho||'';
+    document.getElementById('cli-implantacao').value=c.valor_implantacao||'';
+    document.getElementById('cli-recorrencia').value=c.valor_recorrencia||'';
+    document.getElementById('cli-data-entrada').value=c.data_entrada||'';
+    document.getElementById('cli-status').value=c.status||'ativo';
+    document.getElementById('cli-closer').value=c.closer||'';
+    document.getElementById('cli-servicos').value=c.servicos||'';
+    document.getElementById('cli-obs').value=c.observacoes||'';
+    document.getElementById('modal-cliente-title').textContent='Editar Cliente';
+    document.getElementById('modal-cliente').style.display='flex';
+  });
+}
+
+async function salvarCliente(){
+  var id=document.getElementById('cliente-id').value;
+  var nome=document.getElementById('cli-nome').value.trim();
+  var err=document.getElementById('cliente-err');
+  if(!nome){err.textContent='Nome obrigatorio.';err.style.display='block';return;}
+  var p={nome:nome,responsavel:document.getElementById('cli-resp').value,nicho:document.getElementById('cli-nicho').value,valor_implantacao:Number(document.getElementById('cli-implantacao').value)||0,valor_recorrencia:Number(document.getElementById('cli-recorrencia').value)||0,meses_contrato:Number(document.getElementById('cli-meses-contrato').value)||0,data_entrada:document.getElementById('cli-data-entrada').value||null,status:document.getElementById('cli-status').value,closer:document.getElementById('cli-closer').value,servicos:document.getElementById('cli-servicos').value,observacoes:document.getElementById('cli-obs').value};
   var r=id?await supaFetch('clientes?id=eq.'+id,'PATCH',p):await supaFetch('clientes','POST',p);
   if(r){fecharModalCliente();carregarClientes();}
   else{err.textContent='Erro ao salvar.';err.style.display='block';}
